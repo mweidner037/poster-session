@@ -4,15 +4,11 @@ let box: BABYLON.Mesh;
 function createScene() {
   const scene = new BABYLON.Scene(engine);
 
-  const camera = new BABYLON.ArcRotateCamera(
+  const camera = new BABYLON.UniversalCamera(
     "camera",
-    -Math.PI / 2,
-    Math.PI / 2.5,
-    3,
-    new BABYLON.Vector3(0, 0, 0),
+    new BABYLON.Vector3(0, 1, -2),
     scene
   );
-  camera.attachControl(canvas, true);
 
   const light = new BABYLON.HemisphericLight(
     "light",
@@ -23,6 +19,8 @@ function createScene() {
   createTiledGround(scene);
   box = BABYLON.MeshBuilder.CreateBox("box", {});
   box.position.y = 0.5;
+
+  camera.parent = box;
 
   return scene;
 }
@@ -88,9 +86,20 @@ const engine = new BABYLON.Engine(canvas, true);
 
 const scene = createScene();
 
+const keysDown: { [char: string]: boolean | undefined } = {};
+scene.onKeyboardObservable.add((e) => {
+  if (e.event.type === "keydown") {
+    keysDown[e.event.key] = true;
+  } else if (e.event.type === "keyup") {
+    keysDown[e.event.key] = false;
+  }
+});
+
 scene.onBeforeRenderObservable.add(() => {
-  box.rotatePOV(0, 0.01, 0);
-  box.movePOV(0, 0, 0.01);
+  if (keysDown["w"]) box.movePOV(0, 0, -0.01);
+  else if (keysDown["s"]) box.movePOV(0, 0, 0.01);
+  if (keysDown["a"] && !keysDown["d"]) box.rotatePOV(0, -0.01, 0);
+  else if (keysDown["d"] && !keysDown["a"]) box.rotatePOV(0, 0.01, 0);
 });
 
 // Register a render loop to repeatedly render the scene
