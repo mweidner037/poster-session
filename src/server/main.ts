@@ -1,5 +1,7 @@
 import express = require("express");
 import path = require("path");
+import https = require("https");
+import fs = require("fs");
 import WebSocket = require("ws");
 import { Entity, SerialMutCSet, SerialRuntime } from "../common/state";
 import { PositionRotationSerializer } from "../common/util/serialization";
@@ -11,9 +13,13 @@ const port = process.env.PORT || 3000;
 
 // Serve build/site under /.
 app.use("/", express.static(path.join(__dirname, "../../site")));
-const server = app.listen(port, () =>
-  console.log(`Listening at http://localhost:${port}/`)
+const key = fs.readFileSync(path.join(__dirname, "../../../keys/demo-key.pem"));
+const cert = fs.readFileSync(
+  path.join(__dirname, "../../../keys/demo-cert.pem")
 );
+const server = https
+  .createServer({ key, cert }, app)
+  .listen(port, () => console.log(`Listening at https://localhost:${port}/`));
 
 // Server replica.
 const serverReplica = new SerialRuntime({
