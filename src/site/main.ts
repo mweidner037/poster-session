@@ -7,6 +7,7 @@ import ReconnectingWebSocket from "reconnecting-websocket";
 import { MyVector3 } from "../common/util/babylon_types";
 import { WebSocketMessage } from "../common/util/web_socket_message";
 import { Entity } from "./graphics/entity";
+import { ROTATION_SPEED, TRANSLATION_SPEED } from "./consts";
 
 (async function () {
   // Create replica.
@@ -96,13 +97,6 @@ import { Entity } from "./graphics/entity";
     }
   });
 
-  // Speeds in units/sec.
-  const TRANSLATION_SPEED = 3;
-  const ROTATION_SPEED = 3;
-
-  const posVelocity = new BABYLON.Vector3(0, 0, 0);
-  const rotVelocity = new BABYLON.Vector3(0, 0, 0);
-
   // Render loop. Note we do our own movements here,
   // but only update the server in the logic loop below.
   // This is okay because Entity doesn't sync local changes.
@@ -120,27 +114,19 @@ import { Entity } from "./graphics/entity";
     // Move our player directly (w/o telling the server right away).
     if (keysDown["w"]) {
       ourPlayer.mesh.movePOV(0, 0, -deltaSec * TRANSLATION_SPEED);
-      posVelocity.z = -TRANSLATION_SPEED;
     } else if (keysDown["s"]) {
       ourPlayer.mesh.movePOV(0, 0, deltaSec * TRANSLATION_SPEED);
-      posVelocity.z = TRANSLATION_SPEED;
-    } else {
-      posVelocity.z = 0;
     }
 
     if (keysDown["a"] && !keysDown["d"]) {
       ourPlayer.mesh.rotatePOV(0, -deltaSec * ROTATION_SPEED, 0);
-      rotVelocity.y = -ROTATION_SPEED;
     } else if (keysDown["d"] && !keysDown["a"]) {
       ourPlayer.mesh.rotatePOV(0, deltaSec * ROTATION_SPEED, 0);
-      rotVelocity.y = ROTATION_SPEED;
-    } else {
-      rotVelocity.y = 0;
     }
 
-    // Move other players based on their velocity.
+    // Move other players towards their collab state.
     for (const player of playersByCollab.values()) {
-      if (player !== ourPlayer) player.moveMesh(newTime);
+      if (player !== ourPlayer) player.moveMesh(deltaSec);
     }
   });
 
@@ -156,14 +142,6 @@ import { Entity } from "./graphics/entity";
       !ourPlayer.state.rotation.value.equalsBabylon(ourPlayer.mesh.rotation)
     ) {
       ourPlayer.state.rotation.value = MyVector3.from(ourPlayer.mesh.rotation);
-    }
-
-    // Send velocities to the server.
-    if (!ourPlayer.state.posVelocity.value.equalsBabylon(posVelocity)) {
-      ourPlayer.state.posVelocity.value = MyVector3.from(posVelocity);
-    }
-    if (!ourPlayer.state.rotVelocity.value.equalsBabylon(rotVelocity)) {
-      ourPlayer.state.rotVelocity.value = MyVector3.from(rotVelocity);
     }
   }, 100);
 })();

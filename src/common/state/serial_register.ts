@@ -25,6 +25,8 @@ export class SerialCRegister<T>
 
   set(value: T): T {
     this.value = value;
+    // TODO: same issue as SerialMutCSet for return values
+    // (might not be updated right away).
     return this.value;
   }
 

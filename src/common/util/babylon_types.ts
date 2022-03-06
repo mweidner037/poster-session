@@ -2,20 +2,12 @@
 // since NodeJS doesn't like Babylon.
 
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { FOLLOW_JUMP_TIME } from "../../site/consts";
 
 export class MyVector3 {
   readonly isMyVector3 = true;
 
   constructor(readonly x: number, readonly y: number, readonly z: number) {}
-
-  private _isZero = -1;
-  get isZero(): boolean {
-    if (this._isZero === -1) {
-      const ans = this.x === 0 && this.y === 0 && this.z === 0;
-      this._isZero = ans ? 1 : 0;
-      return ans;
-    } else return this._isZero === 1;
-  }
 
   equalsBabylon(other: Vector3) {
     return other.x === this.x && other.y === this.y && other.z === this.z;
@@ -27,8 +19,28 @@ export class MyVector3 {
     other.z = this.z;
   }
 
-  scale(scale: number): [x: number, y: number, z: number] {
-    return [this.x * scale, this.y * scale, this.z * scale];
+  /**
+   * Change other to move towards this value (possibly
+   * all the way), moving at most the given maxDist.
+   */
+  moveToThis(other: Vector3, maxSpeed: number, dt: number) {
+    const dx = this.x - other.x;
+    const dy = this.y - other.y;
+    const dz = this.z - other.z;
+    const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+    const maxDist = maxSpeed * dt;
+
+    if (dist < maxDist || dist >= maxSpeed * FOLLOW_JUMP_TIME) {
+      // Move it there exactly (avoiding floating point errors).
+      this.syncTo(other);
+    } else {
+      // ratio * dv = norm(dv) * maxDist.
+      const ratio = maxDist / dist;
+      other.x += dx * ratio;
+      other.y += dy * ratio;
+      other.z += dz * ratio;
+    }
   }
 
   static from(vec: Vector3) {

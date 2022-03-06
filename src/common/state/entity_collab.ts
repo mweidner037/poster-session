@@ -6,8 +6,6 @@ import { SerialCRegister } from "./serial_register";
 export class EntityCollab extends collabs.CObject {
   readonly position: SerialCRegister<MyVector3>;
   readonly rotation: SerialCRegister<MyVector3>;
-  readonly posVelocity: SerialCRegister<MyVector3>;
-  readonly rotVelocity: SerialCRegister<MyVector3>;
 
   constructor(
     initToken: collabs.InitToken,
@@ -26,22 +24,6 @@ export class EntityCollab extends collabs.CObject {
     );
     this.rotation = this.addChild(
       "r",
-      collabs.Pre(SerialCRegister)(
-        initialRotation,
-        "local",
-        MyVector3Serializer.instance
-      )
-    );
-    this.posVelocity = this.addChild(
-      "pv",
-      collabs.Pre(SerialCRegister)(
-        initialPosition,
-        "local",
-        MyVector3Serializer.instance
-      )
-    );
-    this.rotVelocity = this.addChild(
-      "rv",
       collabs.Pre(SerialCRegister)(
         initialRotation,
         "local",
