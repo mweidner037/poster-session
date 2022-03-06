@@ -1,23 +1,22 @@
 import { createScene } from "./graphics/scene";
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
-import { SerialRuntime } from "../common/state/serial_runtime";
+import { EntityCollab, SerialMutCSet, SerialRuntime } from "../common/state";
 import * as collabs from "@collabs/collabs";
-import { SerialMutCSet } from "../common/state/serial_mut_set";
-import { Entity } from "../common/state/entity";
 import { PositionRotationSerializer } from "../common/util/serialization";
 import ReconnectingWebSocket from "reconnecting-websocket";
 import { MyVector3 } from "../common/util/babylon_types";
 import { WebSocketMessage } from "../common/util/web_socket_message";
+import { Entity } from "./graphics/entity";
 
 (async function () {
   // Create replica.
   const replica = new SerialRuntime({
     batchingStrategy: new collabs.RateLimitBatchingStrategy(100),
   });
-  const players = replica.registerCollab(
+  const playerCollabs = replica.registerCollab(
     "players",
     collabs.Pre(SerialMutCSet)(
-      collabs.ConstructorAsFunction(Entity),
+      collabs.ConstructorAsFunction(EntityCollab),
       "local",
       new PositionRotationSerializer()
     )
@@ -60,21 +59,31 @@ import { WebSocketMessage } from "../common/util/web_socket_message";
   const [scene, camera] = createScene();
 
   // Sync players from state to scene.
-  for (const player of players) {
-    player.setMesh(BABYLON.MeshBuilder.CreateBox("box", {}));
+  const playersByCollab = new Map<EntityCollab, Entity>();
+  for (const player of playerCollabs) {
+    playersByCollab.set(
+      player,
+      new Entity(player, BABYLON.MeshBuilder.CreateBox("box", {}, scene))
+    );
   }
-  players.on("Add", (e) => {
-    e.value.setMesh(BABYLON.MeshBuilder.CreateBox("box", {}));
+  playerCollabs.on("Add", (e) => {
+    playersByCollab.set(
+      e.value,
+      new Entity(e.value, BABYLON.MeshBuilder.CreateBox("box", {}, scene))
+    );
   });
-  players.on("Delete", (e) => {
-    e.value.mesh.dispose();
+  playerCollabs.on("Delete", (e) => {
+    const player = playersByCollab.get(e.value)!;
+    playersByCollab.delete(e.value);
+    player.mesh.dispose();
   });
 
   // Create our player's entity and attach the camera.
-  const ourPlayer = players.add(
+  const ourPlayerCollab = playerCollabs.add(
     new MyVector3(0, 0.5, 0),
     new MyVector3(0, 0, 0)
   )!;
+  const ourPlayer = playersByCollab.get(ourPlayerCollab)!;
   camera.parent = ourPlayer.mesh;
 
   // Handle user inputs.
@@ -87,23 +96,74 @@ import { WebSocketMessage } from "../common/util/web_socket_message";
     }
   });
 
+  // Speeds in units/sec.
+  const TRANSLATION_SPEED = 3;
+  const ROTATION_SPEED = 3;
+
+  const posVelocity = new BABYLON.Vector3(0, 0, 0);
+  const rotVelocity = new BABYLON.Vector3(0, 0, 0);
+
+  // Render loop. Note we do our own movements here,
+  // but only update the server in the logic loop below.
+  // This is okay because Entity doesn't sync local changes.
+  let lastTime = -1;
   scene.onBeforeRenderObservable.add(() => {
-    // Move the mesh itself, then update Entity to reflect
-    // the movement. This lets us make use of the convenient
-    // ...POV methods.
-    if (keysDown["w"]) {
-      ourPlayer.mesh.movePOV(0, 0, -0.04);
-      ourPlayer.position.value = MyVector3.from(ourPlayer.mesh.position);
-    } else if (keysDown["s"]) {
-      ourPlayer.mesh.movePOV(0, 0, 0.04);
-      ourPlayer.position.value = MyVector3.from(ourPlayer.mesh.position);
+    if (lastTime === -1) {
+      lastTime = Date.now();
+      return;
     }
+
+    const newTime = Date.now();
+    const deltaSec = (newTime - lastTime) / 1000;
+    lastTime = newTime;
+
+    // Move our player directly (w/o telling the server right away).
+    if (keysDown["w"]) {
+      ourPlayer.mesh.movePOV(0, 0, -deltaSec * TRANSLATION_SPEED);
+      posVelocity.z = -TRANSLATION_SPEED;
+    } else if (keysDown["s"]) {
+      ourPlayer.mesh.movePOV(0, 0, deltaSec * TRANSLATION_SPEED);
+      posVelocity.z = TRANSLATION_SPEED;
+    } else {
+      posVelocity.z = 0;
+    }
+
     if (keysDown["a"] && !keysDown["d"]) {
-      ourPlayer.mesh.rotatePOV(0, -0.04, 0);
-      ourPlayer.rotation.value = MyVector3.from(ourPlayer.mesh.rotation);
+      ourPlayer.mesh.rotatePOV(0, -deltaSec * ROTATION_SPEED, 0);
+      rotVelocity.y = -ROTATION_SPEED;
     } else if (keysDown["d"] && !keysDown["a"]) {
-      ourPlayer.mesh.rotatePOV(0, 0.04, 0);
-      ourPlayer.rotation.value = MyVector3.from(ourPlayer.mesh.rotation);
+      ourPlayer.mesh.rotatePOV(0, deltaSec * ROTATION_SPEED, 0);
+      rotVelocity.y = ROTATION_SPEED;
+    } else {
+      rotVelocity.y = 0;
+    }
+
+    // Move other players based on their velocity.
+    for (const player of playersByCollab.values()) {
+      if (player !== ourPlayer) player.moveMesh(newTime);
     }
   });
+
+  // Logic loop.
+  setInterval(() => {
+    // Send actual position/rotation to the server.
+    if (
+      !ourPlayer.state.position.value.equalsBabylon(ourPlayer.mesh.position)
+    ) {
+      ourPlayer.state.position.value = MyVector3.from(ourPlayer.mesh.position);
+    }
+    if (
+      !ourPlayer.state.rotation.value.equalsBabylon(ourPlayer.mesh.rotation)
+    ) {
+      ourPlayer.state.rotation.value = MyVector3.from(ourPlayer.mesh.rotation);
+    }
+
+    // Send velocities to the server.
+    if (!ourPlayer.state.posVelocity.value.equalsBabylon(posVelocity)) {
+      ourPlayer.state.posVelocity.value = MyVector3.from(posVelocity);
+    }
+    if (!ourPlayer.state.rotVelocity.value.equalsBabylon(rotVelocity)) {
+      ourPlayer.state.rotVelocity.value = MyVector3.from(rotVelocity);
+    }
+  }, 100);
 })();
