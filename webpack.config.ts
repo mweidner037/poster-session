@@ -1,7 +1,7 @@
 import * as path from "path";
 import * as webpack from "webpack";
-import HtmlWebpackPlugin from "html-webpack-plugin";
-import CopyWebpackPlugin from "copy-webpack-plugin";
+import HtmlWebpackPlugin = require("html-webpack-plugin");
+import CopyWebpackPlugin = require("copy-webpack-plugin");
 import { CleanWebpackPlugin } from "clean-webpack-plugin";
 
 const config: webpack.Configuration = {
@@ -12,7 +12,7 @@ const config: webpack.Configuration = {
     innerGraph: true,
     sideEffects: true,
   },
-  entry: { index: "./src/site/index.ts" },
+  entry: { main: "./src/site/main.ts" },
   output: {
     filename: "[name].js",
     path: path.resolve(__dirname, "build/site"),
@@ -29,10 +29,11 @@ const config: webpack.Configuration = {
   },
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
+    fallback: { crypto: false },
   },
   plugins: [
     new HtmlWebpackPlugin({
-      chunks: ["index"],
+      chunks: ["main"],
       filename: "index.html",
       template: "./src/site/index.html",
     }),
