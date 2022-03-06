@@ -3,6 +3,7 @@ import path = require("path");
 import WebSocket = require("ws");
 import { Entity, SerialMutCSet, SerialRuntime } from "../common/state";
 import { PositionRotationSerializer } from "../common/util/serialization";
+import { WebSocketMessage } from "../common/util/web_socket_message";
 import * as collabs from "@collabs/collabs";
 
 const app = express();
@@ -27,6 +28,10 @@ const players = serverReplica.registerCollab(
     new PositionRotationSerializer()
   )
 );
+const playersByID = new Map<string, Entity>();
+players.on("Add", (e) => {
+  playersByID.set(e.meta.sender, e.value);
+});
 
 serverReplica.load(collabs.Optional.empty());
 
@@ -34,11 +39,17 @@ serverReplica.on("Send", (e) => {
   broadcast(e.message);
 });
 
+function send(client: WebSocket, message: WebSocketMessage) {
+  client.send(JSON.stringify(message));
+}
+
 // WebSocket server.
 const clients = new Set<WebSocket.WebSocket>();
-function broadcast(message: string) {
+const clientIDs = new Map<WebSocket.WebSocket, string>();
+function broadcast(msg: string) {
+  const message: WebSocketMessage = { type: "msg", msg };
   for (const client of clients) {
-    client.send(message);
+    send(client, message);
   }
 }
 
@@ -47,18 +58,35 @@ wsServer.on("connection", (ws) => {
   clients.add(ws);
   ws.on("close", () => {
     clients.delete(ws);
+    const id = clientIDs.get(ws);
+    if (id !== undefined) {
+      clientIDs.delete(ws);
+      const player = playersByID.get(id);
+      if (player !== undefined) {
+        // Delete the player from the state.
+        playersByID.delete(id);
+        players.delete(player);
+      }
+    }
   });
 
   ws.on("message", (data) => {
-    const message = data.toString();
-    // Deliver to server.
-    serverReplica.receive(message);
+    const message = <WebSocketMessage>JSON.parse(data.toString());
+    switch (message.type) {
+      case "id":
+        clientIDs.set(ws, message.replicaId);
+        break;
+      case "msg":
+        // Deliver to server.
+        serverReplica.receive(message.msg);
 
-    // Broadcast to all clients (including sender).
-    broadcast(message);
+        // Broadcast to all clients (including sender).
+        broadcast(message.msg);
+        break;
+    }
   });
 
   // Send initial state.
   const initialState = serverReplica.save();
-  ws.send(collabs.bytesAsString(initialState));
+  send(ws, { type: "load", saveData: collabs.bytesAsString(initialState) });
 });

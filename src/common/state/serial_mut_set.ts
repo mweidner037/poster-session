@@ -79,6 +79,7 @@ export class SerialMutCSet<C extends collabs.Collab, Args extends any[]>
   delete(value: C): void {
     if (this.has(value)) {
       const message = {
+        op: "delete",
         delete: value.name,
       };
       this.send([BSON.serialize(message)]);

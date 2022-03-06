@@ -7,6 +7,7 @@ import { Entity } from "../common/state/entity";
 import { PositionRotationSerializer } from "../common/util/serialization";
 import ReconnectingWebSocket from "reconnecting-websocket";
 import { MyVector3 } from "../common/util/babylon_types";
+import { WebSocketMessage } from "../common/util/web_socket_message";
 
 (async function () {
   // Create replica.
@@ -26,21 +27,33 @@ import { MyVector3 } from "../common/util/babylon_types";
   // TODO: reconnecting helps us on open, but there will still
   // be problems if the connection is closed (will miss messages).
   const ws = new ReconnectingWebSocket(location.origin.replace(/^http/, "ws"));
-  // First message is saved state.
+  function send(message: WebSocketMessage) {
+    ws.send(JSON.stringify(message));
+  }
+  send({ type: "id", replicaId: replica.replicaID });
+
+  // First message is a load message.
   const saveData = await new Promise<string>((resolve) => {
     const listener = (e: MessageEvent<string>) => {
-      ws.removeEventListener("message", listener);
-      resolve(e.data);
+      const message = <WebSocketMessage>JSON.parse(e.data);
+      if (message.type === "load") {
+        ws.removeEventListener("message", listener);
+        resolve(message.saveData);
+      }
     };
     ws.addEventListener("message", listener);
   });
   replica.load(collabs.Optional.of(collabs.stringAsBytes(saveData)));
+
   // Future messages are replica messages.
   ws.addEventListener("message", (e) => {
-    replica.receive(e.data);
+    const message = <WebSocketMessage>JSON.parse(e.data);
+    if (message.type === "msg") {
+      replica.receive(message.msg);
+    }
   });
   replica.on("Send", (e) => {
-    ws.send(e.message);
+    send({ type: "msg", msg: e.message });
   });
 
   // Create scene.
@@ -79,17 +92,17 @@ import { MyVector3 } from "../common/util/babylon_types";
     // the movement. This lets us make use of the convenient
     // ...POV methods.
     if (keysDown["w"]) {
-      ourPlayer.mesh.movePOV(0, 0, -0.01);
+      ourPlayer.mesh.movePOV(0, 0, -0.04);
       ourPlayer.position.value = MyVector3.from(ourPlayer.mesh.position);
     } else if (keysDown["s"]) {
-      ourPlayer.mesh.movePOV(0, 0, 0.01);
+      ourPlayer.mesh.movePOV(0, 0, 0.04);
       ourPlayer.position.value = MyVector3.from(ourPlayer.mesh.position);
     }
     if (keysDown["a"] && !keysDown["d"]) {
-      ourPlayer.mesh.rotatePOV(0, -0.01, 0);
+      ourPlayer.mesh.rotatePOV(0, -0.04, 0);
       ourPlayer.rotation.value = MyVector3.from(ourPlayer.mesh.rotation);
     } else if (keysDown["d"] && !keysDown["a"]) {
-      ourPlayer.mesh.rotatePOV(0, 0.01, 0);
+      ourPlayer.mesh.rotatePOV(0, 0.04, 0);
       ourPlayer.rotation.value = MyVector3.from(ourPlayer.mesh.rotation);
     }
   });
