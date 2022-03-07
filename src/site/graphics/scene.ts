@@ -8,7 +8,7 @@ export function createScene(): [BABYLON.Scene, BABYLON.UniversalCamera] {
 
   const camera = new BABYLON.UniversalCamera(
     "camera",
-    new BABYLON.Vector3(0, 1, -2),
+    new BABYLON.Vector3(0, 0.9, 0),
     scene
   );
 

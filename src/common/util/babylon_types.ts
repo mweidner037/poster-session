@@ -2,7 +2,7 @@
 // since NodeJS doesn't like Babylon.
 
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
-import { FOLLOW_JUMP_TIME } from "../../site/consts";
+import { FOLLOW_JUMP_TIME } from "../../common/consts";
 
 export class MyVector3 {
   readonly isMyVector3 = true;

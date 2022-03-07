@@ -1,5 +1,6 @@
 import { createScene } from "./graphics/scene";
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
+import "@babylonjs/loaders/glTF"; // gltf file parser
 import { EntityCollab, SerialMutCSet, SerialRuntime } from "../common/state";
 import * as collabs from "@collabs/collabs";
 import { PositionRotationSerializer } from "../common/util/serialization";
@@ -7,7 +8,7 @@ import ReconnectingWebSocket from "reconnecting-websocket";
 import { MyVector3 } from "../common/util/babylon_types";
 import { WebSocketMessage } from "../common/util/web_socket_message";
 import { Entity } from "./graphics/entity";
-import { ROTATION_SPEED, TRANSLATION_SPEED } from "./consts";
+import { ROTATION_SPEED, TRANSLATION_SPEED } from "../common/consts";
 
 (async function () {
   // Create replica.
@@ -59,19 +60,34 @@ import { ROTATION_SPEED, TRANSLATION_SPEED } from "./consts";
   // Create scene.
   const [scene, camera] = createScene();
 
+  // Get player mesh.
+  // TODO: run concurrently with loading, using Promise.all.
+  const result = await BABYLON.SceneLoader.ImportMeshAsync(
+    undefined,
+    "/assets/",
+    "black_bear.gltf"
+  );
+  const bearMesh = result.meshes[1];
+  bearMesh.setEnabled(false); // This is a reference copy, not shown.
+  bearMesh.parent = null; // Clear rotation due to parent
+  bearMesh.rotationQuaternion = null; // Ensure .rotation works
+  bearMesh.rotation = new BABYLON.Vector3(-Math.PI / 2, Math.PI, 0);
+
   // Sync players from state to scene.
+  function addPlayer(playerCollab: EntityCollab) {
+    const innerMesh = bearMesh.clone("bear", null)!;
+    innerMesh.setEnabled(true);
+    const mesh = new BABYLON.AbstractMesh("mesh", scene);
+    innerMesh.parent = mesh;
+    playersByCollab.set(playerCollab, new Entity(playerCollab, mesh));
+  }
+
   const playersByCollab = new Map<EntityCollab, Entity>();
-  for (const player of playerCollabs) {
-    playersByCollab.set(
-      player,
-      new Entity(player, BABYLON.MeshBuilder.CreateBox("box", {}, scene))
-    );
+  for (const playerCollab of playerCollabs) {
+    addPlayer(playerCollab);
   }
   playerCollabs.on("Add", (e) => {
-    playersByCollab.set(
-      e.value,
-      new Entity(e.value, BABYLON.MeshBuilder.CreateBox("box", {}, scene))
-    );
+    addPlayer(e.value);
   });
   playerCollabs.on("Delete", (e) => {
     const player = playersByCollab.get(e.value)!;

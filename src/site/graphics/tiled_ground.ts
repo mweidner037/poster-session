@@ -2,15 +2,15 @@ import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 
 export function addTiledGround(scene: BABYLON.Scene) {
   const grid = {
-    h: 8,
-    w: 8,
+    h: 16,
+    w: 16,
   };
 
   const tiledGround = BABYLON.MeshBuilder.CreateTiledGround("Tiled Ground", {
-    xmin: -3,
-    zmin: -3,
-    xmax: 3,
-    zmax: 3,
+    xmin: -8,
+    zmin: -8,
+    xmax: 8,
+    zmax: 8,
     subdivisions: grid,
   });
 

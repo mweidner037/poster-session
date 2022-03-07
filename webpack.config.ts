@@ -37,23 +37,14 @@ const config: webpack.Configuration = {
       filename: "index.html",
       template: "./src/site/index.html",
     }),
-    // new CopyWebpackPlugin({
-    //   patterns: [
-    //     // Copy index.html, reset.html, more_info.html.
-    //     {
-    //       from: "./src/site/index.html",
-    //       to: "./[base]",
-    //     },
-    //     {
-    //       from: "./src/site/reset.html",
-    //       to: "./[base]",
-    //     },
-    //     {
-    //       from: "./src/site/more_info.html",
-    //       to: "./[base]",
-    //     },
-    //   ],
-    // }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: "./src/site/assets",
+          to: "./assets",
+        },
+      ],
+    }),
     new CleanWebpackPlugin(),
   ],
 };
