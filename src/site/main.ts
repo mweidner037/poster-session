@@ -9,6 +9,7 @@ import { MyVector3 } from "../common/util/babylon_types";
 import { WebSocketMessage } from "../common/util/web_socket_message";
 import { Entity } from "./graphics/entity";
 import { ROTATION_SPEED, TRANSLATION_SPEED } from "../common/consts";
+import { PeerJSManager } from "./calling/peerjs";
 
 (async function () {
   // Create replica.
@@ -34,7 +35,7 @@ import { ROTATION_SPEED, TRANSLATION_SPEED } from "../common/consts";
   send({ type: "id", replicaId: replica.replicaID });
 
   // First message is a load message.
-  const saveData = await new Promise<string>((resolve) => {
+  const saveDataPromise = new Promise<string>((resolve) => {
     const listener = (e: MessageEvent<string>) => {
       const message = <WebSocketMessage>JSON.parse(e.data);
       if (message.type === "load") {
@@ -44,6 +45,18 @@ import { ROTATION_SPEED, TRANSLATION_SPEED } from "../common/consts";
     };
     ws.addEventListener("message", listener);
   });
+
+  // Await user audio permission.
+  const ourAudioStreamPromise = navigator.mediaDevices.getUserMedia({
+    audio: true,
+  });
+
+  // Await promises concurrently.
+  const [saveData, ourAudioStream] = await Promise.all([
+    saveDataPromise,
+    ourAudioStreamPromise,
+  ]);
+
   replica.load(collabs.Optional.of(collabs.stringAsBytes(saveData)));
 
   // Future messages are replica messages.
@@ -160,4 +173,12 @@ import { ROTATION_SPEED, TRANSLATION_SPEED } from "../common/consts";
       ourPlayer.state.rotation.value = MyVector3.from(ourPlayer.mesh.rotation);
     }
   }, 100);
+
+  // Setup WebRTC.
+  // TODO: do this earlier, concurrent with other awaits.
+  const peerJS = PeerJSManager.new(
+    ourAudioStream,
+    ourPlayer.state,
+    playerCollabs
+  );
 })();
