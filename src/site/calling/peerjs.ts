@@ -1,7 +1,8 @@
 // Based on https://github.com/Meshiest/demo-voice/blob/master/public/index.html
 
 import Peer from "peerjs";
-import { EntityCollab, SerialMutCSet } from "../../common/state";
+import { Entity } from "../state/entity";
+import { EntitySet } from "../state/entity_set";
 
 /**
  * Returns a PeerJS peer id that is likely to be globally unique
@@ -28,9 +29,9 @@ export class PeerJSManager {
   /**
    * Excludes us.
    */
-  private readonly playersByPeerID = new Map<string, EntityCollab>();
+  private readonly playersByPeerID = new Map<string, Entity>();
   private readonly videoElemsByPlayer = new Map<
-    EntityCollab,
+    Entity,
     [MediaStream, HTMLVideoElement]
   >();
   /**
@@ -41,8 +42,8 @@ export class PeerJSManager {
   private readonly pendingReceivedStreams = new Map<string, MediaStream>();
 
   private constructor(
-    private readonly ourPlayer: EntityCollab,
-    private readonly players: SerialMutCSet<EntityCollab, unknown[]>,
+    private readonly ourPlayer: Entity,
+    private readonly players: EntitySet,
     readonly ourAudioStream: MediaStream
   ) {
     this.id = this.getPeerID(ourPlayer);
@@ -106,8 +107,8 @@ export class PeerJSManager {
     });
   }
 
-  private getPeerID(playerCollab: EntityCollab) {
-    return stringToPeerID(playerCollab.name);
+  private getPeerID(player: Entity) {
+    return stringToPeerID(player.state.name);
   }
 
   private handleCall(call: Peer.MediaConnection) {
@@ -118,6 +119,8 @@ export class PeerJSManager {
         console.log("  player is known");
         this.playAudioStream(stream, player);
       } else {
+        // TODO: ignore if from a past (deleted) user?
+        // At least need some way to GC it eventually (timeout?).
         console.log("  player is unknown");
         this.pendingReceivedStreams.set(call.peer, stream);
         call.on("close", () => {
@@ -128,7 +131,7 @@ export class PeerJSManager {
     });
   }
 
-  private playAudioStream(stream: MediaStream, player: EntityCollab) {
+  private playAudioStream(stream: MediaStream, player: Entity) {
     const existing = this.videoElemsByPlayer.get(player);
     if (existing !== undefined) {
       if (existing[0] === stream) return;
@@ -147,9 +150,9 @@ export class PeerJSManager {
    * Must be called after loading.
    */
   static async new(
-    ourAudioStream: MediaStream,
-    ourPlayer: EntityCollab,
-    players: SerialMutCSet<EntityCollab, any[]>
+    ourPlayer: Entity,
+    players: EntitySet,
+    ourAudioStream: MediaStream
   ): Promise<PeerJSManager> {
     return new PeerJSManager(ourPlayer, players, ourAudioStream);
   }

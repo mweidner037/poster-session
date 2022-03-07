@@ -7,9 +7,9 @@ import { PositionRotationSerializer } from "../common/util/serialization";
 import ReconnectingWebSocket from "reconnecting-websocket";
 import { MyVector3 } from "../common/util/babylon_types";
 import { WebSocketMessage } from "../common/util/web_socket_message";
-import { Entity } from "./graphics/entity";
 import { ROTATION_SPEED, TRANSLATION_SPEED } from "../common/consts";
 import { PeerJSManager } from "./calling/peerjs";
+import { EntitySet } from "./state/entity_set";
 
 (async function () {
   // Create replica.
@@ -86,34 +86,14 @@ import { PeerJSManager } from "./calling/peerjs";
   bearMesh.rotationQuaternion = null; // Ensure .rotation works
   bearMesh.rotation = new BABYLON.Vector3(-Math.PI / 2, Math.PI, 0);
 
-  // Sync players from state to scene.
-  function addPlayer(playerCollab: EntityCollab) {
-    const innerMesh = bearMesh.clone("bear", null)!;
-    innerMesh.setEnabled(true);
-    const mesh = new BABYLON.AbstractMesh("mesh", scene);
-    innerMesh.parent = mesh;
-    playersByCollab.set(playerCollab, new Entity(playerCollab, mesh));
-  }
-
-  const playersByCollab = new Map<EntityCollab, Entity>();
-  for (const playerCollab of playerCollabs) {
-    addPlayer(playerCollab);
-  }
-  playerCollabs.on("Add", (e) => {
-    addPlayer(e.value);
-  });
-  playerCollabs.on("Delete", (e) => {
-    const player = playersByCollab.get(e.value)!;
-    playersByCollab.delete(e.value);
-    player.mesh.dispose();
-  });
+  // Players as set of Entitys (instead of EntityCollabs).
+  const players = new EntitySet(playerCollabs, bearMesh);
 
   // Create our player's entity and attach the camera.
-  const ourPlayerCollab = playerCollabs.add(
+  const ourPlayer = players.add(
     new MyVector3(0, 0.5, 0),
     new MyVector3(0, 0, 0)
   )!;
-  const ourPlayer = playersByCollab.get(ourPlayerCollab)!;
   camera.parent = ourPlayer.mesh;
 
   // Handle user inputs.
@@ -154,7 +134,7 @@ import { PeerJSManager } from "./calling/peerjs";
     }
 
     // Move other players towards their collab state.
-    for (const player of playersByCollab.values()) {
+    for (const player of players.values()) {
       if (player !== ourPlayer) player.moveMesh(deltaSec);
     }
   });
@@ -175,10 +155,5 @@ import { PeerJSManager } from "./calling/peerjs";
   }, 100);
 
   // Setup WebRTC.
-  // TODO: do this earlier, concurrent with other awaits.
-  const peerJS = PeerJSManager.new(
-    ourAudioStream,
-    ourPlayer.state,
-    playerCollabs
-  );
+  const peerJS = PeerJSManager.new(ourPlayer, players, ourAudioStream);
 })();
