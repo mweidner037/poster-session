@@ -7,27 +7,94 @@ import {
 import { calcVolumes } from "../calling/calc_volumes";
 import { PeerJSConnection } from "../calling";
 
+const NAME_WIDTH = 2;
+const NAME_HEIGHT = 0.3;
+const NAME_POSITION = new BABYLON.Vector3(0, 1.5, 0);
+const TEXTURE_HEIGHT = 60; // In pixels
+const TEXTURE_WIDTH = Math.ceil((TEXTURE_HEIGHT * NAME_WIDTH) / NAME_HEIGHT); // Preserve aspect ratio
+const MAX_FONT_SIZE = Math.floor(TEXTURE_HEIGHT * (4 / 3) * 0.8); // Texture height in pt, scaled by 0.8 for margin
+
 export class Player {
+  readonly mesh: BABYLON.AbstractMesh;
+  private readonly displayMeshMaterial: BABYLON.StandardMaterial;
+  private readonly namePlane: BABYLON.Mesh;
+  private readonly namePlaneDT: BABYLON.DynamicTexture;
   audioConn: PeerJSConnection | null = null;
 
   constructor(
     readonly state: PlayerState,
-    readonly mesh: BABYLON.AbstractMesh,
-    readonly material: BABYLON.StandardMaterial
+    displayMesh: BABYLON.AbstractMesh,
+    scene: BABYLON.Scene
   ) {
-    // Transfer the initial values to the mesh.
-    this.state.position.value.syncTo(this.mesh.position);
-    this.state.rotation.value.syncTo(this.mesh.rotation);
-    this.material.diffuseColor = BABYLON.Color3.FromHexString(
-      this.state.color.value
+    this.mesh = new BABYLON.AbstractMesh("mesh");
+
+    // Setup displayMesh.
+    displayMesh.parent = this.mesh;
+    this.displayMeshMaterial = new BABYLON.StandardMaterial("bear_mat", scene);
+    displayMesh.material = this.displayMeshMaterial;
+
+    // Setup namePlane and the DynamicTexture for writing on it.
+    this.namePlane = BABYLON.MeshBuilder.CreatePlane(
+      "plane",
+      { width: NAME_WIDTH, height: NAME_HEIGHT },
+      scene
+    );
+    this.namePlane.parent = this.mesh;
+    this.namePlane.position = NAME_POSITION;
+    this.namePlane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+
+    this.namePlaneDT = new BABYLON.DynamicTexture(
+      "planeDT",
+      {
+        width: TEXTURE_WIDTH,
+        height: TEXTURE_HEIGHT,
+      },
+      scene,
+      false
     );
 
+    const namePlaneMaterial = new BABYLON.StandardMaterial("plane_mat", scene);
+    namePlaneMaterial.ambientColor = new BABYLON.Color3(1, 1, 1);
+    namePlaneMaterial.diffuseTexture = this.namePlaneDT;
+    namePlaneMaterial.diffuseTexture.hasAlpha = true;
+    this.namePlane.material = namePlaneMaterial;
+
+    // Display initial values.
+    this.state.position.value.syncTo(this.mesh.position);
+    this.state.rotation.value.syncTo(this.mesh.rotation);
+    this.onColorSet();
+    // this.onDisplayNameSet(); // Called by onColorSet.
+
     // Sync state to values, except those set during ticks.
-    this.state.color.on("Set", () => {
-      this.material.diffuseColor = BABYLON.Color3.FromHexString(
-        this.state.color.value
-      );
-    });
+    this.state.color.on("Set", () => this.onColorSet());
+    this.state.displayName.on("Set", () => this.onDisplayNameSet());
+  }
+
+  private onColorSet() {
+    this.displayMeshMaterial.diffuseColor = BABYLON.Color3.FromHexString(
+      this.state.color.value
+    );
+    this.onDisplayNameSet();
+  }
+
+  private onDisplayNameSet() {
+    // See https://doc.babylonjs.com/divingDeeper/materials/using/dynamicTexture#fit-text-into-an-area
+    const ctx = this.namePlaneDT.getContext();
+    ctx.font = MAX_FONT_SIZE + "px Arial";
+    const textWidth = ctx.measureText(this.state.displayName.value).width;
+    const ratio = Math.min(1, TEXTURE_WIDTH / textWidth);
+    const fontSize = Math.floor(ratio * MAX_FONT_SIZE);
+    // Center x.
+    const x = TEXTURE_WIDTH > textWidth ? (TEXTURE_WIDTH - textWidth) / 2 : 0;
+    ctx.clearRect(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+    this.namePlaneDT.drawText(
+      this.state.displayName.value,
+      x,
+      null,
+      fontSize + "px Arial",
+      this.state.color.value,
+      "transparent"
+    );
   }
 
   /**

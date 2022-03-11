@@ -37,13 +37,9 @@ export class PlayerSet extends collabs.EventEmitter<
   }
 
   private onAdd(entityCollab: PlayerState, eventMeta?: collabs.MessageMeta) {
-    const innerMesh = this.meshTemplate.clone("bear", null)!;
-    innerMesh.setEnabled(true);
-    const mesh = new BABYLON.AbstractMesh("mesh");
-    innerMesh.parent = mesh;
-    const material = new BABYLON.StandardMaterial("bear_mat", this.scene);
-    innerMesh.material = material;
-    const entity = new Player(entityCollab, mesh, material);
+    const displayMesh = this.meshTemplate.clone("bear", null)!;
+    displayMesh.setEnabled(true);
+    const entity = new Player(entityCollab, displayMesh, this.scene);
     this.entitiesByCollab.set(entityCollab, entity);
 
     if (eventMeta !== undefined) {
