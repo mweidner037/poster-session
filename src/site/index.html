@@ -41,7 +41,7 @@
         font-weight: bold;
       }
 
-      #nameInputDiv {
+      #rightTopDiv {
         flex: 0 0 content;
       }
 
@@ -49,8 +49,18 @@
         width: 100%;
         box-sizing: border-box;
 
-        font-size: 20pt;
+        font-size: 18pt;
         font-weight: bold;
+      }
+
+      #controlsText {
+        font-size: 14pt;
+        font-weight: normal;
+      }
+
+      p {
+        margin-top: 10pt;
+        margin-bottom: 10pt;
       }
     </style>
 
@@ -61,7 +71,7 @@
     <div id="mainDiv">
       <canvas id="renderCanvas" touch-action="none"></canvas>
       <div id="rightDiv">
-        <div id="nameInputDiv">
+        <div id="rightTopDiv">
           <form id="nameInputForm">
             <label for="nameInput">Name</label><br />
             <input id="nameInput" type="text" />
@@ -80,6 +90,11 @@
             style="display: none"
           />
           <canvas id="colorInput" width="201" height="50"></canvas>
+          <p>Controls</p>
+          <p id="controlsText">
+            WASD to move.<br />
+            C to change camera.
+          </p>
         </div>
       </div>
     </div>

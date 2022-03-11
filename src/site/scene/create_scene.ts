@@ -1,4 +1,5 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
+import { CAMERA_PERSPECTIVES } from "../run/handle_camera_perspective";
 import { addTiledGround } from "./tiled_ground";
 
 export function createScene(): [BABYLON.Scene, BABYLON.UniversalCamera] {
@@ -11,7 +12,7 @@ export function createScene(): [BABYLON.Scene, BABYLON.UniversalCamera] {
   // things so the camera is at (0, 0, 0).
   const camera = new BABYLON.UniversalCamera(
     "camera",
-    new BABYLON.Vector3(0, 0.9, 0),
+    CAMERA_PERSPECTIVES[0],
     scene
   );
 

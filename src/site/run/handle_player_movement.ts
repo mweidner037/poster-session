@@ -5,10 +5,10 @@ import { Player } from "../state/player";
 import { PlayerSet } from "../state/player_set";
 
 export function handlePlayerMovement(
-  scene: BABYLON.Scene,
   ourPlayer: Player,
   players: PlayerSet,
-  keyTracker: KeyTracker
+  keyTracker: KeyTracker,
+  scene: BABYLON.Scene
 ) {
   // Render loop. Note we do our own movements here,
   // but only update the server in the logic loop below.
@@ -25,15 +25,18 @@ export function handlePlayerMovement(
     lastTime = newTime;
 
     // Move our player directly (w/o telling the server right away).
-    if (keyTracker.get("w")) {
+    if (keyTracker.getIgnoreCase("w")) {
       ourPlayer.mesh.movePOV(0, 0, -deltaSec * TRANSLATION_SPEED);
-    } else if (keyTracker.get("s")) {
+    } else if (keyTracker.getIgnoreCase("s")) {
       ourPlayer.mesh.movePOV(0, 0, deltaSec * TRANSLATION_SPEED);
     }
 
-    if (keyTracker.get("a") && !keyTracker.get("d")) {
+    if (keyTracker.getIgnoreCase("a") && !keyTracker.getIgnoreCase("d")) {
       ourPlayer.mesh.rotatePOV(0, -deltaSec * ROTATION_SPEED, 0);
-    } else if (keyTracker.get("d") && !keyTracker.get("a")) {
+    } else if (
+      keyTracker.getIgnoreCase("d") &&
+      !keyTracker.getIgnoreCase("a")
+    ) {
       ourPlayer.mesh.rotatePOV(0, deltaSec * ROTATION_SPEED, 0);
     }
 

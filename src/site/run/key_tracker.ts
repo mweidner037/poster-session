@@ -17,4 +17,8 @@ export class KeyTracker {
   get(char: string): boolean {
     return this.keysDown[char] ?? false;
   }
+
+  getIgnoreCase(char: string): boolean {
+    return this.get(char.toLowerCase()) || this.get(char.toUpperCase());
+  }
 }

@@ -15,6 +15,7 @@ import { handlePlayerMovement } from "./run/handle_player_movement";
 import { runLogicLoop } from "./run/run_logic_loop";
 import { createScene } from "./scene/create_scene";
 import { handleColorInput } from "./run/handle_color_input";
+import { handleCameraPerspective } from "./run/handle_camera_perspective";
 
 (async function () {
   // -----------------------------------------------------
@@ -134,7 +135,9 @@ import { handleColorInput } from "./run/handle_color_input";
   handleColorInput(ourPlayer);
 
   const keyTracker = new KeyTracker(scene);
-  handlePlayerMovement(scene, ourPlayer, players, keyTracker);
+  handlePlayerMovement(ourPlayer, players, keyTracker, scene);
+
+  handleCameraPerspective(camera, scene);
 
   runLogicLoop(ourPlayer, players);
 })();
