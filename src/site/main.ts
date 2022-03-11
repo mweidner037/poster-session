@@ -45,6 +45,18 @@ import { EntitySet } from "./state/entity_set";
     };
     ws.addEventListener("message", listener);
   });
+  // Future messages are replica messages.
+  let msgBeforeLoad: string[] = [];
+  ws.addEventListener("message", (e) => {
+    const message = <WebSocketMessage>JSON.parse(e.data);
+    if (message.type === "msg") {
+      if (replica.isLoaded) {
+        replica.receive(message.msg);
+      } else {
+        msgBeforeLoad.push(message.msg);
+      }
+    }
+  });
 
   // Await user audio permission.
   const ourAudioStreamPromise = navigator.mediaDevices.getUserMedia({
@@ -52,20 +64,27 @@ import { EntitySet } from "./state/entity_set";
   });
 
   // Await promises concurrently.
-  const [saveData, ourAudioStream] = await Promise.all([
+  const [saveDataSettled, ourAudioStreamSettled] = await Promise.allSettled([
     saveDataPromise,
     ourAudioStreamPromise,
   ]);
+  const saveData = (<PromiseFulfilledResult<string>>saveDataSettled).value;
+  const ourAudioStream =
+    ourAudioStreamSettled.status === "fulfilled"
+      ? ourAudioStreamSettled.value
+      : null;
+  if (ourAudioStream === null) {
+    console.log("User rejected audio permissions");
+  }
 
+  // Load replica.
   replica.load(collabs.Optional.of(collabs.stringAsBytes(saveData)));
-
-  // Future messages are replica messages.
-  ws.addEventListener("message", (e) => {
-    const message = <WebSocketMessage>JSON.parse(e.data);
-    if (message.type === "msg") {
-      replica.receive(message.msg);
-    }
+  Promise.resolve().then(() => {
+    msgBeforeLoad.forEach((msg) => replica.receive(msg));
+    msgBeforeLoad = [];
   });
+
+  // Send events.
   replica.on("Send", (e) => {
     send({ type: "msg", msg: e.message });
   });
@@ -133,9 +152,9 @@ import { EntitySet } from "./state/entity_set";
       ourPlayer.mesh.rotatePOV(0, deltaSec * ROTATION_SPEED, 0);
     }
 
-    // Move other players towards their collab state.
+    // Move other players.
     for (const player of players.values()) {
-      if (player !== ourPlayer) player.moveMesh(deltaSec);
+      if (player !== ourPlayer) player.littleTick(deltaSec);
     }
   });
 
@@ -152,8 +171,13 @@ import { EntitySet } from "./state/entity_set";
     ) {
       ourPlayer.state.rotation.value = MyVector3.from(ourPlayer.mesh.rotation);
     }
+
+    // Big tick.
+    for (const player of players.values()) {
+      if (player !== ourPlayer) player.bigTick(ourPlayer);
+    }
   }, 100);
 
   // Setup WebRTC.
-  const peerJS = PeerJSManager.new(ourPlayer, players, ourAudioStream);
+  new PeerJSManager(ourPlayer, players, ourAudioStream);
 })();

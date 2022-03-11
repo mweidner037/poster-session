@@ -6,6 +6,9 @@ export function createScene(): [BABYLON.Scene, BABYLON.UniversalCamera] {
   const engine = new BABYLON.Engine(canvas, true);
   const scene = new BABYLON.Scene(engine);
 
+  // TODO: if we use Y in volume calcs and it can be pointing
+  // in not the absolute Y dir, then we'd need to adjust
+  // things so the camera is at (0, 0, 0).
   const camera = new BABYLON.UniversalCamera(
     "camera",
     new BABYLON.Vector3(0, 0.9, 0),
