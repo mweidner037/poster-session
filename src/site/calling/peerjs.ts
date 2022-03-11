@@ -1,6 +1,6 @@
 import Peer from "peerjs";
-import { Entity } from "../state/entity";
-import { EntitySet } from "../state/entity_set";
+import { Player } from "../state/player";
+import { PlayerSet } from "../state/player_set";
 import { calcVolumes } from "./calc_volumes";
 import { StreamSplit } from "./stream_split";
 
@@ -41,7 +41,7 @@ export class PeerJSManager {
   /**
    * Excludes us.
    */
-  private readonly playersByPeerID = new Map<string, Entity>();
+  private readonly playersByPeerID = new Map<string, Player>();
   /**
    * Streams that we have answered but don't yet associate
    * with a player, probably because we haven't received
@@ -60,8 +60,8 @@ export class PeerJSManager {
    */
   constructor(
     private readonly peer: Peer,
-    private readonly ourPlayer: Entity,
-    private readonly players: EntitySet,
+    private readonly ourPlayer: Player,
+    private readonly players: PlayerSet,
     private readonly ourAudioStream: MediaStream
   ) {
     // Logging info.
@@ -92,7 +92,7 @@ export class PeerJSManager {
     });
   }
 
-  private onAdd(player: Entity): void {
+  private onAdd(player: Player): void {
     if (player === this.ourPlayer) return;
 
     const peerID = player.state.peerID;
@@ -138,7 +138,7 @@ export class PeerJSManager {
   }
 
   private setAudioConn(
-    player: Entity,
+    player: Player,
     call: Peer.MediaConnection,
     stream: MediaStream
   ) {

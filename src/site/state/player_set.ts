@@ -1,13 +1,13 @@
 import * as collabs from "@collabs/collabs";
-import { EntityCollab, SerialMutCSet } from "../../common/state";
+import { PlayerState, SerialMutCSet } from "../../common/state";
 import { MyVector3 } from "../../common/util/babylon_types";
-import { Entity } from "./entity";
+import { Player } from "./player";
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 
-export class EntitySet extends collabs.EventEmitter<
-  collabs.CSetEventsRecord<Entity>
+export class PlayerSet extends collabs.EventEmitter<
+  collabs.CSetEventsRecord<Player>
 > {
-  private readonly entitiesByCollab = new Map<EntityCollab, Entity>();
+  private readonly entitiesByCollab = new Map<PlayerState, Player>();
 
   /**
    * Assumes the Collab state is already loaded. Further messages
@@ -15,10 +15,17 @@ export class EntitySet extends collabs.EventEmitter<
    */
   constructor(
     private readonly entityCollabs: SerialMutCSet<
-      EntityCollab,
-      [peerID: string, position: MyVector3, rotation: MyVector3]
+      PlayerState,
+      [
+        peerID: string,
+        position: MyVector3,
+        rotation: MyVector3,
+        displayName: string,
+        color: string
+      ]
     >,
-    private readonly meshTemplate: BABYLON.AbstractMesh
+    private readonly meshTemplate: BABYLON.AbstractMesh,
+    private readonly scene: BABYLON.Scene
   ) {
     super();
 
@@ -29,12 +36,14 @@ export class EntitySet extends collabs.EventEmitter<
     this.entityCollabs.on("Delete", (e) => this.onDelete(e.value, e.meta));
   }
 
-  private onAdd(entityCollab: EntityCollab, eventMeta?: collabs.MessageMeta) {
+  private onAdd(entityCollab: PlayerState, eventMeta?: collabs.MessageMeta) {
     const innerMesh = this.meshTemplate.clone("bear", null)!;
     innerMesh.setEnabled(true);
     const mesh = new BABYLON.AbstractMesh("mesh");
     innerMesh.parent = mesh;
-    const entity = new Entity(entityCollab, mesh);
+    const material = new BABYLON.StandardMaterial("bear_mat", this.scene);
+    innerMesh.material = material;
+    const entity = new Player(entityCollab, mesh, material);
     this.entitiesByCollab.set(entityCollab, entity);
 
     if (eventMeta !== undefined) {
@@ -42,7 +51,7 @@ export class EntitySet extends collabs.EventEmitter<
     }
   }
 
-  private onDelete(entityCollab: EntityCollab, eventMeta: collabs.MessageMeta) {
+  private onDelete(entityCollab: PlayerState, eventMeta: collabs.MessageMeta) {
     const entity = this.entitiesByCollab.get(entityCollab)!;
     this.entitiesByCollab.delete(entityCollab);
     entity.mesh.dispose();
@@ -50,16 +59,28 @@ export class EntitySet extends collabs.EventEmitter<
     this.emit("Delete", { value: entity, meta: eventMeta });
   }
 
-  add(peerID: string, position: MyVector3, rotation: MyVector3): Entity {
-    const entityCollab = this.entityCollabs.add(peerID, position, rotation)!;
+  add(
+    peerID: string,
+    position: MyVector3,
+    rotation: MyVector3,
+    displayName: string,
+    color: string
+  ): Player {
+    const entityCollab = this.entityCollabs.add(
+      peerID,
+      position,
+      rotation,
+      displayName,
+      color
+    )!;
     return this.entitiesByCollab.get(entityCollab)!;
   }
 
-  delete(entity: Entity) {
+  delete(entity: Player) {
     this.entityCollabs.delete(entity.state);
   }
 
-  values(): IterableIterator<Entity> {
+  values(): IterableIterator<Player> {
     return this.entitiesByCollab.values();
   }
 

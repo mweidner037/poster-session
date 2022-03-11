@@ -17,16 +17,28 @@ export class MyVector3Serializer implements collabs.Serializer<MyVector3> {
   static instance = new MyVector3Serializer();
 }
 
-export class EntityCollabArgsSerializer
+export class PlayerStateArgsSerializer
   implements
     collabs.Serializer<
-      [peerID: string, position: MyVector3, rotation: MyVector3]
+      [
+        peerID: string,
+        position: MyVector3,
+        rotation: MyVector3,
+        name: string,
+        color: string
+      ]
     >
 {
   serialize(
-    value: [peerID: string, position: MyVector3, rotation: MyVector3]
+    value: [
+      peerID: string,
+      position: MyVector3,
+      rotation: MyVector3,
+      name: string,
+      color: string
+    ]
   ): Uint8Array {
-    const [peerID, p, r] = value;
+    const [peerID, p, r, name, color] = value;
     return BSON.serialize({
       peerID,
       px: p.x,
@@ -35,17 +47,27 @@ export class EntityCollabArgsSerializer
       rx: r.x,
       ry: r.y,
       rz: r.z,
+      name,
+      color,
     });
   }
 
   deserialize(
     message: Uint8Array
-  ): [peerID: string, position: MyVector3, rotation: MyVector3] {
+  ): [
+    peerID: string,
+    position: MyVector3,
+    rotation: MyVector3,
+    name: string,
+    color: string
+  ] {
     const decoded = BSON.deserialize(message);
     return [
       decoded.peerID,
       new MyVector3(decoded.px, decoded.py, decoded.pz),
       new MyVector3(decoded.rx, decoded.ry, decoded.rz),
+      decoded.name,
+      decoded.color,
     ];
   }
 }

@@ -1,4 +1,4 @@
-import { EntityCollab } from "../../common/state";
+import { PlayerState } from "../../common/state";
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import {
   ROTATION_FOLLOW_SPEED,
@@ -7,16 +7,27 @@ import {
 import { calcVolumes } from "../calling/calc_volumes";
 import { PeerJSConnection } from "../calling";
 
-export class Entity {
+export class Player {
   audioConn: PeerJSConnection | null = null;
 
   constructor(
-    readonly state: EntityCollab,
-    readonly mesh: BABYLON.AbstractMesh
+    readonly state: PlayerState,
+    readonly mesh: BABYLON.AbstractMesh,
+    readonly material: BABYLON.StandardMaterial
   ) {
-    // Transfer the initial position/rotation to the mesh.
+    // Transfer the initial values to the mesh.
     this.state.position.value.syncTo(this.mesh.position);
     this.state.rotation.value.syncTo(this.mesh.rotation);
+    this.material.diffuseColor = BABYLON.Color3.FromHexString(
+      this.state.color.value
+    );
+
+    // Sync state to values, except those set during ticks.
+    this.state.color.on("Set", () => {
+      this.material.diffuseColor = BABYLON.Color3.FromHexString(
+        this.state.color.value
+      );
+    });
   }
 
   /**
@@ -40,7 +51,7 @@ export class Entity {
   /**
    * Only called on non-player entities.
    */
-  bigTick(ourPlayer: Entity): void {
+  bigTick(ourPlayer: Player): void {
     // Update volume levels by distance and angle.
     if (this.audioConn !== null) {
       this.audioConn.streamSplit.setVolume(

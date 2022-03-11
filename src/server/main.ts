@@ -3,8 +3,8 @@ import path = require("path");
 import https = require("https");
 import fs = require("fs");
 import WebSocket = require("ws");
-import { EntityCollab, SerialMutCSet, SerialRuntime } from "../common/state";
-import { EntityCollabArgsSerializer } from "../common/util/serialization";
+import { PlayerState, SerialMutCSet, SerialRuntime } from "../common/state";
+import { PlayerStateArgsSerializer } from "../common/util/serialization";
 import { WebSocketMessage } from "../common/util/web_socket_message";
 import * as collabs from "@collabs/collabs";
 
@@ -29,12 +29,12 @@ const serverReplica = new SerialRuntime({
 const players = serverReplica.registerCollab(
   "players",
   collabs.Pre(SerialMutCSet)(
-    collabs.ConstructorAsFunction(EntityCollab),
+    collabs.ConstructorAsFunction(PlayerState),
     "local",
-    new EntityCollabArgsSerializer()
+    new PlayerStateArgsSerializer()
   )
 );
-const playersByID = new Map<string, EntityCollab>();
+const playersByID = new Map<string, PlayerState>();
 players.on("Add", (e) => {
   playersByID.set(e.meta.sender, e.value);
 });

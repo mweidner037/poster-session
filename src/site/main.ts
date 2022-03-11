@@ -1,16 +1,17 @@
 import { createScene } from "./graphics/scene";
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import "@babylonjs/loaders/glTF"; // gltf file parser
-import { EntityCollab, SerialMutCSet, SerialRuntime } from "../common/state";
+import { PlayerState, SerialMutCSet, SerialRuntime } from "../common/state";
 import * as collabs from "@collabs/collabs";
-import { EntityCollabArgsSerializer } from "../common/util/serialization";
+import { PlayerStateArgsSerializer } from "../common/util/serialization";
 import ReconnectingWebSocket from "reconnecting-websocket";
 import { MyVector3 } from "../common/util/babylon_types";
 import { WebSocketMessage } from "../common/util/web_socket_message";
 import { ROTATION_SPEED, TRANSLATION_SPEED } from "../common/consts";
-import { EntitySet } from "./state/entity_set";
+import { PlayerSet } from "./state/player_set";
 import Peer from "peerjs";
 import { getAudioInput, peerIDFromString, PeerJSManager } from "./calling";
+import hsl from "hsl-to-hex";
 
 (async function () {
   // -----------------------------------------------------
@@ -24,9 +25,9 @@ import { getAudioInput, peerIDFromString, PeerJSManager } from "./calling";
   const playerCollabs = replica.registerCollab(
     "players",
     collabs.Pre(SerialMutCSet)(
-      collabs.ConstructorAsFunction(EntityCollab),
+      collabs.ConstructorAsFunction(PlayerState),
       "local",
-      new EntityCollabArgsSerializer()
+      new PlayerStateArgsSerializer()
     )
   );
 
@@ -104,13 +105,17 @@ import { getAudioInput, peerIDFromString, PeerJSManager } from "./calling";
   bearMesh.parent = null; // Clear rotation due to parent
   bearMesh.rotationQuaternion = null; // Ensure .rotation works
   bearMesh.rotation = new BABYLON.Vector3(-Math.PI / 2, Math.PI, 0);
-  const players = new EntitySet(playerCollabs, bearMesh);
+  const players = new PlayerSet(playerCollabs, bearMesh, scene);
 
   // Create our player's entity and attach the camera.
+  const randomName = "Bear " + Math.floor(Math.random() * 10000);
+  const randomColor = hsl(Math.floor(Math.random() * 361), 100, 50);
   const ourPlayer = players.add(
     peerID,
     new MyVector3(0, 0.5, 0),
-    new MyVector3(0, 0, 0)
+    new MyVector3(0, 0, 0),
+    randomName,
+    randomColor
   );
   camera.parent = ourPlayer.mesh;
 
@@ -133,7 +138,7 @@ import { getAudioInput, peerIDFromString, PeerJSManager } from "./calling";
 
   // Render loop. Note we do our own movements here,
   // but only update the server in the logic loop below.
-  // This is okay because Entity doesn't sync local changes.
+  // This is okay because Player doesn't sync local changes.
   let lastTime = -1;
   scene.onBeforeRenderObservable.add(() => {
     if (lastTime === -1) {
