@@ -9,13 +9,8 @@ export class StreamSplit {
 
   constructor(readonly stream: MediaStream, { left = 1, right = 1 } = {}) {
     // create audio context using the stream as a source
-    // TODO: why not use the stream directly, instead of making a track and then a stream again?
-    // (Probably to get rid of video, which doesn't matter for us)
-    const track = stream.getAudioTracks()[0];
     this.context = new AudioContext();
-    this.source = this.context.createMediaStreamSource(
-      new MediaStream([track])
-    );
+    this.source = this.context.createMediaStreamSource(new MediaStream(stream));
 
     // create a channel for each ear (left, right)
     this.channels = {

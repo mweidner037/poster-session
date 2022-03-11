@@ -62,17 +62,20 @@ export class Player {
     // Display initial values.
     this.state.position.value.syncTo(this.mesh.position);
     this.state.rotation.value.syncTo(this.mesh.rotation);
-    this.onColorSet();
-    // this.onDisplayNameSet(); // Called by onColorSet.
+    this.onHueSet();
+    // this.onDisplayNameSet(); // Called by onHueSet.
 
     // Sync state to values, except those set during ticks.
-    this.state.color.on("Set", () => this.onColorSet());
+    this.state.hue.on("Set", () => this.onHueSet());
     this.state.displayName.on("Set", () => this.onDisplayNameSet());
   }
 
-  private onColorSet() {
-    this.displayMeshMaterial.diffuseColor = BABYLON.Color3.FromHexString(
-      this.state.color.value
+  private onHueSet() {
+    BABYLON.Color3.HSVtoRGBToRef(
+      this.state.hue.value,
+      1,
+      0.5,
+      this.displayMeshMaterial.diffuseColor
     );
     this.onDisplayNameSet();
   }
@@ -92,7 +95,7 @@ export class Player {
       x,
       null,
       fontSize + "px Arial",
-      this.state.color.value,
+      `hsl(${this.state.hue.value}, 100%, 50%)`,
       "transparent"
     );
   }

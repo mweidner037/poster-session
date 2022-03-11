@@ -25,14 +25,15 @@ export function createScene(): [BABYLON.Scene, BABYLON.UniversalCamera] {
   });
 
   function onResize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
     engine.resize();
   }
 
-  // Watch for browser/canvas resize events.
+  // Resize the canvas to fit its CSS dimensions.
   onResize();
-  window.addEventListener("resize", onResize);
+  const observer = new ResizeObserver(onResize);
+  observer.observe(canvas);
 
   return [scene, camera];
 }

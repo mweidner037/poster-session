@@ -1,4 +1,3 @@
-import { createScene } from "./graphics/scene";
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import "@babylonjs/loaders/glTF"; // gltf file parser
 import { PlayerState, SerialMutCSet, SerialRuntime } from "../common/state";
@@ -7,11 +6,15 @@ import { PlayerStateArgsSerializer } from "../common/util/serialization";
 import ReconnectingWebSocket from "reconnecting-websocket";
 import { MyVector3 } from "../common/util/babylon_types";
 import { WebSocketMessage } from "../common/util/web_socket_message";
-import { ROTATION_SPEED, TRANSLATION_SPEED } from "../common/consts";
 import { PlayerSet } from "./state/player_set";
 import Peer from "peerjs";
 import { getAudioInput, peerIDFromString, PeerJSManager } from "./calling";
-import hsl from "hsl-to-hex";
+import { KeyTracker } from "./run/key_tracker";
+import { handleNameInput } from "./run/handle_name_input";
+import { handlePlayerMovement } from "./run/handle_player_movement";
+import { runLogicLoop } from "./run/run_logic_loop";
+import { createScene } from "./scene/create_scene";
+import { handleColorInput } from "./run/handle_color_input";
 
 (async function () {
   // -----------------------------------------------------
@@ -108,14 +111,14 @@ import hsl from "hsl-to-hex";
   const players = new PlayerSet(playerCollabs, bearMesh, scene);
 
   // Create our player's entity and attach the camera.
-  const randomName = "Bear " + Math.floor(Math.random() * 10000);
-  const randomColor = hsl(Math.floor(Math.random() * 361), 100, 50);
+  const nameInput = <HTMLInputElement>document.getElementById("nameInput");
+  const randomHue = 2 * Math.floor(Math.random() * 181);
   const ourPlayer = players.add(
     peerID,
     new MyVector3(0, 0.5, 0),
     new MyVector3(0, 0, 0),
-    randomName,
-    randomColor
+    nameInput.value,
+    randomHue
   );
   camera.parent = ourPlayer.mesh;
 
@@ -126,66 +129,12 @@ import hsl from "hsl-to-hex";
   // Run app
   // -----------------------------------------------------
 
-  // Handle user inputs.
-  const keysDown: { [char: string]: boolean | undefined } = {};
-  scene.onKeyboardObservable.add((e) => {
-    if (e.event.type === "keydown") {
-      keysDown[e.event.key] = true;
-    } else if (e.event.type === "keyup") {
-      keysDown[e.event.key] = false;
-    }
-  });
+  handleNameInput(ourPlayer);
 
-  // Render loop. Note we do our own movements here,
-  // but only update the server in the logic loop below.
-  // This is okay because Player doesn't sync local changes.
-  let lastTime = -1;
-  scene.onBeforeRenderObservable.add(() => {
-    if (lastTime === -1) {
-      lastTime = Date.now();
-      return;
-    }
+  handleColorInput(ourPlayer);
 
-    const newTime = Date.now();
-    const deltaSec = (newTime - lastTime) / 1000;
-    lastTime = newTime;
+  const keyTracker = new KeyTracker(scene);
+  handlePlayerMovement(scene, ourPlayer, players, keyTracker);
 
-    // Move our player directly (w/o telling the server right away).
-    if (keysDown["w"]) {
-      ourPlayer.mesh.movePOV(0, 0, -deltaSec * TRANSLATION_SPEED);
-    } else if (keysDown["s"]) {
-      ourPlayer.mesh.movePOV(0, 0, deltaSec * TRANSLATION_SPEED);
-    }
-
-    if (keysDown["a"] && !keysDown["d"]) {
-      ourPlayer.mesh.rotatePOV(0, -deltaSec * ROTATION_SPEED, 0);
-    } else if (keysDown["d"] && !keysDown["a"]) {
-      ourPlayer.mesh.rotatePOV(0, deltaSec * ROTATION_SPEED, 0);
-    }
-
-    // Move other players.
-    for (const player of players.values()) {
-      if (player !== ourPlayer) player.littleTick(deltaSec);
-    }
-  });
-
-  // Logic loop.
-  setInterval(() => {
-    // Send actual position/rotation to the server.
-    if (
-      !ourPlayer.state.position.value.equalsBabylon(ourPlayer.mesh.position)
-    ) {
-      ourPlayer.state.position.value = MyVector3.from(ourPlayer.mesh.position);
-    }
-    if (
-      !ourPlayer.state.rotation.value.equalsBabylon(ourPlayer.mesh.rotation)
-    ) {
-      ourPlayer.state.rotation.value = MyVector3.from(ourPlayer.mesh.rotation);
-    }
-
-    // Big tick.
-    for (const player of players.values()) {
-      if (player !== ourPlayer) player.bigTick(ourPlayer);
-    }
-  }, 100);
+  runLogicLoop(ourPlayer, players);
 })();

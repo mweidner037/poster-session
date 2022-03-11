@@ -7,8 +7,8 @@ export class PlayerState extends collabs.CObject {
   readonly position: SerialCRegister<MyVector3>;
   readonly rotation: SerialCRegister<MyVector3>;
   readonly displayName: SerialCRegister<string>;
-  /** As a hex string (including #). */
-  readonly color: SerialCRegister<string>;
+  /** A number in [0, 360]. */
+  readonly hue: SerialCRegister<number>;
 
   constructor(
     initToken: collabs.InitToken,
@@ -16,7 +16,7 @@ export class PlayerState extends collabs.CObject {
     initialPosition: MyVector3,
     initialRotation: MyVector3,
     initialDisplayName: string,
-    initialColor: string
+    initialHue: number
   ) {
     super(initToken);
 
@@ -40,9 +40,9 @@ export class PlayerState extends collabs.CObject {
       "displayName",
       collabs.Pre(SerialCRegister)(initialDisplayName, "local")
     );
-    this.color = this.addChild(
-      "color",
-      collabs.Pre(SerialCRegister)(initialColor, "local")
+    this.hue = this.addChild(
+      "hue",
+      collabs.Pre(SerialCRegister)(initialHue, "local")
     );
   }
 }

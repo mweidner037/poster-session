@@ -12,8 +12,45 @@
         margin: 0;
       }
 
-      canvas {
+      #mainDiv {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+
+        display: flex;
+        flex-direction: row;
+      }
+
+      #renderCanvas {
+        flex: 1 0;
         display: block;
+      }
+
+      #rightDiv {
+        flex: 0 0 auto;
+        width: 230px;
+
+        display: flex;
+        flex-direction: column;
+
+        padding: 10pt;
+        border-style: ridge;
+        background-color: darkgrey;
+
+        font-size: 20pt;
+        font-weight: bold;
+      }
+
+      #nameInputDiv {
+        flex: 0 0 content;
+      }
+
+      #nameInput {
+        width: 100%;
+        box-sizing: border-box;
+
+        font-size: 20pt;
+        font-weight: bold;
       }
     </style>
 
@@ -21,6 +58,30 @@
   </head>
 
   <body>
-    <canvas id="renderCanvas" touch-action="none"></canvas>
+    <div id="mainDiv">
+      <canvas id="renderCanvas" touch-action="none"></canvas>
+      <div id="rightDiv">
+        <div id="nameInputDiv">
+          <form id="nameInputForm">
+            <label for="nameInput">Name</label><br />
+            <input id="nameInput" type="text" />
+            <script>
+              // Set name here, so it doesn't awkwardly sit blank while
+              // the deferred script loads.
+              const nameInput = document.getElementById("nameInput");
+              const randomName = "Bear " + Math.floor(Math.random() * 10000);
+              nameInput.value = randomName;
+            </script>
+          </form>
+          <p>Color</p>
+          <img
+            id="colorInputImage"
+            src="assets/color_input_image.png"
+            style="display: none"
+          />
+          <canvas id="colorInput" width="201" height="50"></canvas>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

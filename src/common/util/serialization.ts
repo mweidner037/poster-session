@@ -25,7 +25,7 @@ export class PlayerStateArgsSerializer
         position: MyVector3,
         rotation: MyVector3,
         name: string,
-        color: string
+        hue: number
       ]
     >
 {
@@ -35,10 +35,10 @@ export class PlayerStateArgsSerializer
       position: MyVector3,
       rotation: MyVector3,
       name: string,
-      color: string
+      hue: number
     ]
   ): Uint8Array {
-    const [peerID, p, r, name, color] = value;
+    const [peerID, p, r, name, hue] = value;
     return BSON.serialize({
       peerID,
       px: p.x,
@@ -48,7 +48,7 @@ export class PlayerStateArgsSerializer
       ry: r.y,
       rz: r.z,
       name,
-      color,
+      hue,
     });
   }
 
@@ -59,7 +59,7 @@ export class PlayerStateArgsSerializer
     position: MyVector3,
     rotation: MyVector3,
     name: string,
-    color: string
+    hue: number
   ] {
     const decoded = BSON.deserialize(message);
     return [
@@ -67,7 +67,7 @@ export class PlayerStateArgsSerializer
       new MyVector3(decoded.px, decoded.py, decoded.pz),
       new MyVector3(decoded.rx, decoded.ry, decoded.rz),
       decoded.name,
-      decoded.color,
+      decoded.hue,
     ];
   }
 }

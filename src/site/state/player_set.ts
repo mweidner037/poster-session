@@ -21,7 +21,7 @@ export class PlayerSet extends collabs.EventEmitter<
         position: MyVector3,
         rotation: MyVector3,
         displayName: string,
-        color: string
+        hue: number
       ]
     >,
     private readonly meshTemplate: BABYLON.AbstractMesh,
@@ -60,14 +60,14 @@ export class PlayerSet extends collabs.EventEmitter<
     position: MyVector3,
     rotation: MyVector3,
     displayName: string,
-    color: string
+    hue: number
   ): Player {
     const entityCollab = this.entityCollabs.add(
       peerID,
       position,
       rotation,
       displayName,
-      color
+      hue
     )!;
     return this.entitiesByCollab.get(entityCollab)!;
   }
