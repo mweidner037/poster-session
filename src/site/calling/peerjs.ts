@@ -1,10 +1,10 @@
-// Based on https://github.com/Meshiest/demo-voice/blob/master/public/index.html
-
 import Peer from "peerjs";
 import { Entity } from "../state/entity";
 import { EntitySet } from "../state/entity_set";
 import { calcVolumes } from "./calc_volumes";
 import { StreamSplit } from "./stream_split";
+
+// Based on https://github.com/Meshiest/demo-voice/blob/master/public/index.html
 
 /**
  * Returns a PeerJS peer id that is likely to be globally unique
@@ -12,7 +12,7 @@ import { StreamSplit } from "./stream_split";
  * This function's use is that peer ids have specific
  * requirements, while anyID can be any string.
  */
-export function stringToPeerID(anyID: string): string {
+export function peerIDFromString(anyID: string): string {
   // Take each replicaID char as a number mod 26, then convert to a capital letter.
   const arr: number[] = [];
   for (let i = 0; i < anyID.length; i++) {
@@ -22,11 +22,22 @@ export function stringToPeerID(anyID: string): string {
   return "meowser37_" + String.fromCharCode(...arr);
 }
 
-// TODO: retries
+export class PeerJSConnection {
+  constructor(
+    readonly call: Peer.MediaConnection,
+    readonly streamSplit: StreamSplit
+  ) {}
+
+  close() {
+    this.streamSplit.close();
+    this.call.close();
+  }
+}
+
+// TODO: reconnect to PeerJS server if disconnected?
+// TODO: Call retries.
 
 export class PeerJSManager {
-  readonly peer: Peer;
-
   /**
    * Excludes us.
    */
@@ -39,31 +50,22 @@ export class PeerJSManager {
    * TODO: maybe we can get rid of this? Shouldn't happen
    * if this is constructed in the same thread as ourPlayer?
    */
-  private readonly pendingReceivedStreams = new Map<string, MediaStream>();
+  private readonly pendingReceivedStreams = new Map<
+    string,
+    [call: Peer.MediaConnection, stream: MediaStream]
+  >();
 
   /**
-   * Must be called after loading and after adding our
-   * Entity.
+   * Must be constructed synchronously with creating ourPlayer.
    */
   constructor(
+    private readonly peer: Peer,
     private readonly ourPlayer: Entity,
     private readonly players: EntitySet,
-    readonly ourAudioStream: MediaStream | null
+    private readonly ourAudioStream: MediaStream
   ) {
-    // TODO: IRL we would need our own PeerJS server, STUN server,
-    // and TURN server, all specified as options here.
-    // For now we use PeerJS defaults, which are:
-    // - PeerJS own PeerJS server
-    // - Google STUN server
-    // - No TURN server
-    // These options are fine for testing, but rude & flaky
-    // for a real deployment.
-    this.peer = new Peer(this.ourPlayer.peerID);
-
     // Logging info.
-    console.log("Our peer id: " + this.ourPlayer.peerID);
-    this.peer.on("open", () => console.log("open"));
-    this.peer.on("disconnected", () => console.log("disconnected"));
+    this.peer.on("disconnected", () => console.error("PeerJS disconnected"));
     this.peer.on("error", (err) => {
       console.log("PeerJS error:");
       console.error(err);
@@ -72,51 +74,47 @@ export class PeerJSManager {
     // Answer calls.
     this.peer.on("call", (call) => {
       console.log("received call from " + call.peer);
-      if (this.ourAudioStream !== null) {
-        call.answer(this.ourAudioStream);
-      }
+      call.answer(this.ourAudioStream);
       this.handleCall(call);
     });
 
-    // Keep playersByPeerID up to date.
+    // Keep track of players, calling/closing as needed.
     for (const player of this.players) {
-      if (player !== this.ourPlayer) {
-        this.playersByPeerID.set(player.peerID, player);
-        const pendingStream = this.pendingReceivedStreams.get(player.peerID);
-        if (pendingStream !== undefined) {
-          console.log("  pending player now known");
-          this.pendingReceivedStreams.delete(player.peerID);
-          this.playAudioStream(pendingStream, player);
-        }
-        // Existing peers call us, not vice-versa.
-      }
+      this.onAdd(player);
     }
-    this.players.on("Add", (e) => {
-      const peerID = e.value.peerID;
-      console.log("Got add: " + peerID);
-      this.playersByPeerID.set(peerID, e.value);
-      const pendingStream = this.pendingReceivedStreams.get(peerID);
-      if (pendingStream !== undefined) {
-        console.log("  pending player now known");
-        this.pendingReceivedStreams.delete(peerID);
-        this.playAudioStream(pendingStream, e.value);
-      } else {
-        // Call the new peer.
-        if (this.ourAudioStream !== null) {
-          console.log("Calling peer " + peerID);
-          const call = this.peer.call(peerID, this.ourAudioStream);
-          this.handleCall(call);
-        }
-      }
-    });
+    this.players.on("Add", (e) => this.onAdd(e.value));
     this.players.on("Delete", (e) => {
-      this.playersByPeerID.delete(e.value.peerID);
-      // TODO: also close original call?
-      if (e.value.streamSplit !== null) {
-        e.value.streamSplit.close();
-        e.value.streamSplit = null;
+      this.playersByPeerID.delete(e.value.state.peerID);
+      if (e.value.audioConn !== null) {
+        e.value.audioConn.close();
+        e.value.audioConn = null;
       }
     });
+  }
+
+  private onAdd(player: Entity): void {
+    if (player === this.ourPlayer) return;
+
+    const peerID = player.state.peerID;
+    console.log("Got add or initial value: " + peerID);
+    this.playersByPeerID.set(peerID, player);
+
+    const pendingStream = this.pendingReceivedStreams.get(peerID);
+    if (pendingStream !== undefined) {
+      console.log("  pending player now known");
+      this.pendingReceivedStreams.delete(peerID);
+      this.setAudioConn(player, ...pendingStream);
+    } else {
+      // Call the new peer.
+      // TODO: Could skip this if the peer is initial value,
+      // letting them call us instead. That would avoid calling
+      // both ways in that case (although not in the case of
+      // concurrently added peers). However, it would also
+      // increase connection latency.
+      console.log("Calling peer " + peerID);
+      const call = this.peer.call(peerID, this.ourAudioStream);
+      this.handleCall(call);
+    }
   }
 
   private handleCall(call: Peer.MediaConnection) {
@@ -125,12 +123,12 @@ export class PeerJSManager {
       const player = this.playersByPeerID.get(call.peer);
       if (player !== undefined) {
         console.log("  player is known");
-        this.playAudioStream(stream, player);
+        this.setAudioConn(player, call, stream);
       } else {
         // TODO: ignore if from a past (deleted) user?
         // At least need some way to GC it eventually (timeout?).
         console.log("  player is unknown");
-        this.pendingReceivedStreams.set(call.peer, stream);
+        this.pendingReceivedStreams.set(call.peer, [call, stream]);
         call.on("close", () => {
           this.pendingReceivedStreams.delete(call.peer);
         });
@@ -139,22 +137,35 @@ export class PeerJSManager {
     });
   }
 
-  private playAudioStream(stream: MediaStream, player: Entity) {
-    if (player.streamSplit !== null) {
-      if (player.streamSplit.stream === stream) return;
-      else player.streamSplit.close();
+  private setAudioConn(
+    player: Entity,
+    call: Peer.MediaConnection,
+    stream: MediaStream
+  ) {
+    if (player.audioConn !== null) {
+      // TODO: in principle, this could be trying to overwrite
+      // the existing call, in which case we should close
+      // the existing call and proceed here. But I don't know
+      // how to distinguish that case from the case of two
+      // players who both call each other, in which we'd
+      // rather just ignore the duplicate call.
+      console.log("    duplicate call, skipping");
+      return;
     }
 
     // Create StreamSplit.
-    const volumes = calcVolumes(
+    const initialVolumes = calcVolumes(
       player.mesh.position,
       player.mesh.rotation,
       this.ourPlayer.mesh.position,
       this.ourPlayer.mesh.rotation
     );
-    player.streamSplit = new StreamSplit(stream, {
-      left: volumes[0],
-      right: volumes[1],
+    const streamSplit = new StreamSplit(stream, {
+      left: initialVolumes[0],
+      right: initialVolumes[1],
     });
+
+    // Set player.audioConn.
+    player.audioConn = new PeerJSConnection(call, streamSplit);
   }
 }

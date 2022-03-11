@@ -9,8 +9,9 @@ export class EntityCollab extends collabs.CObject {
 
   constructor(
     initToken: collabs.InitToken,
+    readonly peerID: string,
     initialPosition: MyVector3,
-    initialRotation: MyVector3 = new MyVector3(0, 0, 0)
+    initialRotation: MyVector3
   ) {
     super(initToken);
 

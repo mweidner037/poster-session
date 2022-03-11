@@ -17,12 +17,18 @@ export class MyVector3Serializer implements collabs.Serializer<MyVector3> {
   static instance = new MyVector3Serializer();
 }
 
-export class PositionRotationSerializer
-  implements collabs.Serializer<[position: MyVector3, rotation: MyVector3]>
+export class EntityCollabArgsSerializer
+  implements
+    collabs.Serializer<
+      [peerID: string, position: MyVector3, rotation: MyVector3]
+    >
 {
-  serialize(value: [position: MyVector3, rotation: MyVector3]): Uint8Array {
-    const [p, r] = value;
+  serialize(
+    value: [peerID: string, position: MyVector3, rotation: MyVector3]
+  ): Uint8Array {
+    const [peerID, p, r] = value;
     return BSON.serialize({
+      peerID,
       px: p.x,
       py: p.y,
       pz: p.z,
@@ -32,9 +38,12 @@ export class PositionRotationSerializer
     });
   }
 
-  deserialize(message: Uint8Array): [position: MyVector3, rotation: MyVector3] {
+  deserialize(
+    message: Uint8Array
+  ): [peerID: string, position: MyVector3, rotation: MyVector3] {
     const decoded = BSON.deserialize(message);
     return [
+      decoded.peerID,
       new MyVector3(decoded.px, decoded.py, decoded.pz),
       new MyVector3(decoded.rx, decoded.ry, decoded.rz),
     ];

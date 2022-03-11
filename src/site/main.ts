@@ -3,15 +3,20 @@ import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import "@babylonjs/loaders/glTF"; // gltf file parser
 import { EntityCollab, SerialMutCSet, SerialRuntime } from "../common/state";
 import * as collabs from "@collabs/collabs";
-import { PositionRotationSerializer } from "../common/util/serialization";
+import { EntityCollabArgsSerializer } from "../common/util/serialization";
 import ReconnectingWebSocket from "reconnecting-websocket";
 import { MyVector3 } from "../common/util/babylon_types";
 import { WebSocketMessage } from "../common/util/web_socket_message";
 import { ROTATION_SPEED, TRANSLATION_SPEED } from "../common/consts";
-import { PeerJSManager } from "./calling/peerjs";
 import { EntitySet } from "./state/entity_set";
+import Peer from "peerjs";
+import { getAudioInput, peerIDFromString, PeerJSManager } from "./calling";
 
 (async function () {
+  // -----------------------------------------------------
+  // Setup
+  // -----------------------------------------------------
+
   // Create replica.
   const replica = new SerialRuntime({
     batchingStrategy: new collabs.RateLimitBatchingStrategy(100),
@@ -21,7 +26,7 @@ import { EntitySet } from "./state/entity_set";
     collabs.Pre(SerialMutCSet)(
       collabs.ConstructorAsFunction(EntityCollab),
       "local",
-      new PositionRotationSerializer()
+      new EntityCollabArgsSerializer()
     )
   );
 
@@ -48,35 +53,73 @@ import { EntitySet } from "./state/entity_set";
     }
   });
 
-  // Request user audio permission.
-  const ourAudioStreamPromise = navigator.mediaDevices.getUserMedia({
-    audio: true,
+  // Get audio input. Do it now to start requesting user audio permission.
+  const ourAudioStream = getAudioInput();
+
+  // Start connecting to PeerJS server.
+  // TODO: IRL we would need our own PeerJS server, STUN server,
+  // and TURN server, all specified as options here.
+  // For now we use PeerJS defaults, which are:
+  // - PeerJS own PeerJS server
+  // - Google STUN server
+  // - No TURN server
+  // These options are fine for testing, but rude & flaky
+  // for a real deployment.
+  const peerID = peerIDFromString(replica.replicaID);
+  console.log("Our peer id: " + peerID);
+  const peerServer = new Peer(peerID);
+  const peerServerOpenPromise = new Promise<void>((resolve) => {
+    peerServer.on("open", () => {
+      console.log("Peer server connected");
+      resolve();
+    });
   });
 
   // Create scene.
   const [scene, camera] = createScene();
 
-  // Get player mesh.
-  const result = await BABYLON.SceneLoader.ImportMeshAsync(
+  // Start getting player mesh.
+  const bearMeshImportPromise = BABYLON.SceneLoader.ImportMeshAsync(
     undefined,
     "/assets/",
     "black_bear.gltf"
   );
-  const bearMesh = result.meshes[1];
+
+  // Wait for various things that need to happen before
+  // we can create ourPlayer:
+  // - PeerJS server connects.
+  // - Player mesh loads.
+  // - Collabs state loads. (Note that further messages might
+  // also be received by now.)
+  // TODO: audio-less fallback for if PeerJS server fails to connect?
+  const [bearMeshImport] = await Promise.all([
+    bearMeshImportPromise,
+    peerServerOpenPromise,
+    replica.nextEvent("Load"),
+  ]);
+
+  // Finish setting up player mesh and create players.
+  const bearMesh = bearMeshImport.meshes[1];
   bearMesh.setEnabled(false); // This is a reference copy, not shown.
   bearMesh.parent = null; // Clear rotation due to parent
   bearMesh.rotationQuaternion = null; // Ensure .rotation works
   bearMesh.rotation = new BABYLON.Vector3(-Math.PI / 2, Math.PI, 0);
-
-  // Players as set of Entitys (instead of EntityCollabs).
   const players = new EntitySet(playerCollabs, bearMesh);
 
   // Create our player's entity and attach the camera.
   const ourPlayer = players.add(
+    peerID,
     new MyVector3(0, 0.5, 0),
     new MyVector3(0, 0, 0)
-  )!;
+  );
   camera.parent = ourPlayer.mesh;
+
+  // Setup WebRTC. Do this synchronously with creating ourPlayer.
+  new PeerJSManager(peerServer, ourPlayer, players, ourAudioStream);
+
+  // -----------------------------------------------------
+  // Run app
+  // -----------------------------------------------------
 
   // Handle user inputs.
   const keysDown: { [char: string]: boolean | undefined } = {};
@@ -140,14 +183,4 @@ import { EntitySet } from "./state/entity_set";
       if (player !== ourPlayer) player.bigTick(ourPlayer);
     }
   }, 100);
-
-  // Setup WebRTC.
-  let ourAudioStream: MediaStream | null = null;
-  try {
-    ourAudioStream = await ourAudioStreamPromise;
-  } catch (err) {
-    console.log("User rejected audio permissions");
-  }
-  await (replica.isLoaded ? Promise.resolve() : replica.nextEvent("Load"));
-  new PeerJSManager(ourPlayer, players, ourAudioStream);
 })();

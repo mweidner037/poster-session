@@ -4,20 +4,16 @@ import {
   ROTATION_FOLLOW_SPEED,
   TRANSLATION_FOLLOW_SPEED,
 } from "../../common/consts";
-import { stringToPeerID } from "../calling/peerjs";
 import { calcVolumes } from "../calling/calc_volumes";
-import { StreamSplit } from "../calling/stream_split";
+import { PeerJSConnection } from "../calling";
 
 export class Entity {
-  readonly peerID: string;
-  streamSplit: StreamSplit | null = null;
+  audioConn: PeerJSConnection | null = null;
 
   constructor(
     readonly state: EntityCollab,
     readonly mesh: BABYLON.AbstractMesh
   ) {
-    this.peerID = stringToPeerID(state.name);
-
     // Transfer the initial position/rotation to the mesh.
     this.state.position.value.syncTo(this.mesh.position);
     this.state.rotation.value.syncTo(this.mesh.rotation);
@@ -46,8 +42,8 @@ export class Entity {
    */
   bigTick(ourPlayer: Entity): void {
     // Update volume levels by distance and angle.
-    if (this.streamSplit !== null) {
-      this.streamSplit.setVolume(
+    if (this.audioConn !== null) {
+      this.audioConn.streamSplit.setVolume(
         ...calcVolumes(
           this.mesh.position,
           this.mesh.rotation,

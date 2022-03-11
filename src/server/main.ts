@@ -4,7 +4,7 @@ import https = require("https");
 import fs = require("fs");
 import WebSocket = require("ws");
 import { EntityCollab, SerialMutCSet, SerialRuntime } from "../common/state";
-import { PositionRotationSerializer } from "../common/util/serialization";
+import { EntityCollabArgsSerializer } from "../common/util/serialization";
 import { WebSocketMessage } from "../common/util/web_socket_message";
 import * as collabs from "@collabs/collabs";
 
@@ -31,7 +31,7 @@ const players = serverReplica.registerCollab(
   collabs.Pre(SerialMutCSet)(
     collabs.ConstructorAsFunction(EntityCollab),
     "local",
-    new PositionRotationSerializer()
+    new EntityCollabArgsSerializer()
   )
 );
 const playersByID = new Map<string, EntityCollab>();

@@ -9,25 +9,22 @@ export class EntitySet extends collabs.EventEmitter<
 > {
   private readonly entitiesByCollab = new Map<EntityCollab, Entity>();
 
+  /**
+   * Assumes the Collab state is already loaded. Further messages
+   * are okay too.
+   */
   constructor(
     private readonly entityCollabs: SerialMutCSet<
       EntityCollab,
-      [position: MyVector3, rotation: MyVector3]
+      [peerID: string, position: MyVector3, rotation: MyVector3]
     >,
     private readonly meshTemplate: BABYLON.AbstractMesh
   ) {
     super();
 
-    // TODO: only do if runtime is already loaded, once we add
-    // Runtime.isLoaded field.
     for (const entityCollab of this.entityCollabs) {
       this.onAdd(entityCollab);
     }
-    this.entityCollabs.runtime.on("Load", () => {
-      for (const entityCollab of this.entityCollabs) {
-        this.onAdd(entityCollab);
-      }
-    });
     this.entityCollabs.on("Add", (e) => this.onAdd(e.value, e.meta));
     this.entityCollabs.on("Delete", (e) => this.onDelete(e.value, e.meta));
   }
@@ -53,8 +50,8 @@ export class EntitySet extends collabs.EventEmitter<
     this.emit("Delete", { value: entity, meta: eventMeta });
   }
 
-  add(position: MyVector3, rotation: MyVector3): Entity {
-    const entityCollab = this.entityCollabs.add(position, rotation)!;
+  add(peerID: string, position: MyVector3, rotation: MyVector3): Entity {
+    const entityCollab = this.entityCollabs.add(peerID, position, rotation)!;
     return this.entitiesByCollab.get(entityCollab)!;
   }
 
