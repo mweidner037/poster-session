@@ -113,6 +113,7 @@ export class PeerJSManager {
     });
     this.players.on("Delete", (e) => {
       this.playersByPeerID.delete(e.value.peerID);
+      // TODO: also close original call?
       if (e.value.videoElem !== null) {
         e.value.videoElem.remove();
         e.value.videoElem = null;

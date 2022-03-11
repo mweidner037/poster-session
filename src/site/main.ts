@@ -33,67 +33,30 @@ import { EntitySet } from "./state/entity_set";
     ws.send(JSON.stringify(message));
   }
   send({ type: "id", replicaId: replica.replicaID });
-
-  // First message is a load message.
-  const saveDataPromise = new Promise<string>((resolve) => {
-    const listener = (e: MessageEvent<string>) => {
-      const message = <WebSocketMessage>JSON.parse(e.data);
-      if (message.type === "load") {
-        ws.removeEventListener("message", listener);
-        resolve(message.saveData);
-      }
-    };
-    ws.addEventListener("message", listener);
+  replica.on("Send", (e) => {
+    send({ type: "msg", msg: e.message });
   });
-  // Future messages are replica messages.
-  let msgBeforeLoad: string[] = [];
+
   ws.addEventListener("message", (e) => {
     const message = <WebSocketMessage>JSON.parse(e.data);
-    if (message.type === "msg") {
-      if (replica.isLoaded) {
-        replica.receive(message.msg);
-      } else {
-        msgBeforeLoad.push(message.msg);
-      }
+    if (message.type === "load") {
+      replica.load(
+        collabs.Optional.of(collabs.stringAsBytes(message.saveData))
+      );
+    } else if (message.type === "msg") {
+      replica.receive(message.msg);
     }
   });
 
-  // Await user audio permission.
+  // Request user audio permission.
   const ourAudioStreamPromise = navigator.mediaDevices.getUserMedia({
     audio: true,
-  });
-
-  // Await promises concurrently.
-  const [saveDataSettled, ourAudioStreamSettled] = await Promise.allSettled([
-    saveDataPromise,
-    ourAudioStreamPromise,
-  ]);
-  const saveData = (<PromiseFulfilledResult<string>>saveDataSettled).value;
-  const ourAudioStream =
-    ourAudioStreamSettled.status === "fulfilled"
-      ? ourAudioStreamSettled.value
-      : null;
-  if (ourAudioStream === null) {
-    console.log("User rejected audio permissions");
-  }
-
-  // Load replica.
-  replica.load(collabs.Optional.of(collabs.stringAsBytes(saveData)));
-  Promise.resolve().then(() => {
-    msgBeforeLoad.forEach((msg) => replica.receive(msg));
-    msgBeforeLoad = [];
-  });
-
-  // Send events.
-  replica.on("Send", (e) => {
-    send({ type: "msg", msg: e.message });
   });
 
   // Create scene.
   const [scene, camera] = createScene();
 
   // Get player mesh.
-  // TODO: run concurrently with loading, using Promise.all.
   const result = await BABYLON.SceneLoader.ImportMeshAsync(
     undefined,
     "/assets/",
@@ -179,5 +142,12 @@ import { EntitySet } from "./state/entity_set";
   }, 100);
 
   // Setup WebRTC.
+  let ourAudioStream: MediaStream | null = null;
+  try {
+    ourAudioStream = await ourAudioStreamPromise;
+  } catch (err) {
+    console.log("User rejected audio permissions");
+  }
+  await (replica.isLoaded ? Promise.resolve() : replica.nextEvent("Load"));
   new PeerJSManager(ourPlayer, players, ourAudioStream);
 })();
