@@ -5,7 +5,6 @@
 export class StreamSplit {
   private readonly context: AudioContext;
   private readonly source: MediaStreamAudioSourceNode;
-  private readonly destination: MediaStreamAudioDestinationNode;
   private readonly channels: { left: GainNode; right: GainNode };
 
   constructor(readonly stream: MediaStream, { left = 1, right = 1 } = {}) {
@@ -36,8 +35,6 @@ export class StreamSplit {
 
     // connect the merger to the audio context
     merger.connect(this.context.destination);
-
-    this.destination = this.context.createMediaStreamDestination();
   }
 
   // set the volume

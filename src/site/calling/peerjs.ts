@@ -26,7 +26,6 @@ export function stringToPeerID(anyID: string): string {
 
 export class PeerJSManager {
   readonly peer: Peer;
-  private readonly videoDiv: HTMLDivElement;
 
   /**
    * Excludes us.
@@ -60,7 +59,6 @@ export class PeerJSManager {
     // These options are fine for testing, but rude & flaky
     // for a real deployment.
     this.peer = new Peer(this.ourPlayer.peerID);
-    this.videoDiv = <HTMLDivElement>document.getElementById("videoDiv");
 
     // Logging info.
     console.log("Our peer id: " + this.ourPlayer.peerID);
@@ -114,10 +112,8 @@ export class PeerJSManager {
     this.players.on("Delete", (e) => {
       this.playersByPeerID.delete(e.value.peerID);
       // TODO: also close original call?
-      if (e.value.videoElem !== null) {
-        e.value.videoElem.remove();
-        e.value.videoElem = null;
-        e.value.streamSplit!.close();
+      if (e.value.streamSplit !== null) {
+        e.value.streamSplit.close();
         e.value.streamSplit = null;
       }
     });
@@ -144,9 +140,9 @@ export class PeerJSManager {
   }
 
   private playAudioStream(stream: MediaStream, player: Entity) {
-    if (player.videoElem !== null) {
-      if (player.streamSplit!.stream === stream) return;
-      else player.videoElem.remove();
+    if (player.streamSplit !== null) {
+      if (player.streamSplit.stream === stream) return;
+      else player.streamSplit.close();
     }
 
     // Create StreamSplit.
@@ -160,13 +156,5 @@ export class PeerJSManager {
       left: volumes[0],
       right: volumes[1],
     });
-
-    // Play the stream in an HTMLVideoElement.
-    const elem = <HTMLVideoElement>document.createElement("video");
-    elem.srcObject = stream;
-    elem.muted = true;
-    elem.onloadedmetadata = () => elem.play();
-    this.videoDiv.appendChild(elem);
-    player.videoElem = elem;
   }
 }

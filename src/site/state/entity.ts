@@ -10,8 +10,6 @@ import { StreamSplit } from "../calling/stream_split";
 
 export class Entity {
   readonly peerID: string;
-  // videoElem and audioStream are set in tandem.
-  videoElem: HTMLVideoElement | null = null;
   streamSplit: StreamSplit | null = null;
 
   constructor(
