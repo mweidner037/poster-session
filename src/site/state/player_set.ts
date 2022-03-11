@@ -4,9 +4,16 @@ import { MyVector3 } from "../../common/util/babylon_types";
 import { Player } from "./player";
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 
-export class PlayerSet extends collabs.EventEmitter<
-  collabs.CSetEventsRecord<Player>
-> {
+export interface PlayerSetEventsRecord {
+  Add: collabs.CSetEvent<Player>;
+  Delete: collabs.CSetEvent<Player>;
+  /**
+   * Emitted whenever the set of display names changes.
+   */
+  NameSetChange: {};
+}
+
+export class PlayerSet extends collabs.EventEmitter<PlayerSetEventsRecord> {
   private readonly entitiesByCollab = new Map<PlayerState, Player>();
 
   /**
@@ -42,8 +49,11 @@ export class PlayerSet extends collabs.EventEmitter<
     const entity = new Player(entityCollab, displayMesh, this.scene);
     this.entitiesByCollab.set(entityCollab, entity);
 
+    entityCollab.displayName.on("Set", () => this.emit("NameSetChange", {}));
+
     if (eventMeta !== undefined) {
       this.emit("Add", { value: entity, meta: eventMeta });
+      this.emit("NameSetChange", {});
     }
   }
 
@@ -53,6 +63,7 @@ export class PlayerSet extends collabs.EventEmitter<
     entity.mesh.dispose();
 
     this.emit("Delete", { value: entity, meta: eventMeta });
+    this.emit("NameSetChange", {});
   }
 
   add(

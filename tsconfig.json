@@ -15,7 +15,9 @@
     /* We don't need to emit declarations. */
     "declaration": false,
     /* Emit sourcemap files. */
-    "sourceMap": true
+    "sourceMap": true,
+    /* JSX. */
+    "jsx": "react"
   },
   "include": ["src/site", "src/common"]
 }

@@ -35,6 +35,7 @@ export function createScene(): [BABYLON.Scene, BABYLON.UniversalCamera] {
   onResize();
   const observer = new ResizeObserver(onResize);
   observer.observe(canvas);
+  window.addEventListener("resize", onResize);
 
   return [scene, camera];
 }

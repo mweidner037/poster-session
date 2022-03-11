@@ -12,7 +12,7 @@ const config: webpack.Configuration = {
     innerGraph: true,
     sideEffects: true,
   },
-  entry: { main: "./src/site/main.ts" },
+  entry: { main: "./src/site/main.tsx" },
   output: {
     filename: "[name].js",
     path: path.resolve(__dirname, "build/site"),

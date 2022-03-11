@@ -16,6 +16,9 @@ import { runLogicLoop } from "./run/run_logic_loop";
 import { createScene } from "./scene/create_scene";
 import { handleColorInput } from "./run/handle_color_input";
 import { handleCameraPerspective } from "./run/handle_camera_perspective";
+import React from "react";
+import ReactDOM from "react-dom";
+import { PlayersList } from "./components/players_list";
 
 (async function () {
   // -----------------------------------------------------
@@ -48,7 +51,7 @@ import { handleCameraPerspective } from "./run/handle_camera_perspective";
   });
 
   ws.addEventListener("message", (e) => {
-    const message = <WebSocketMessage>JSON.parse(e.data);
+    const message = JSON.parse(e.data) as WebSocketMessage;
     if (message.type === "load") {
       replica.load(
         collabs.Optional.of(collabs.stringAsBytes(message.saveData))
@@ -112,7 +115,7 @@ import { handleCameraPerspective } from "./run/handle_camera_perspective";
   const players = new PlayerSet(playerCollabs, bearMesh, scene);
 
   // Create our player's entity and attach the camera.
-  const nameInput = <HTMLInputElement>document.getElementById("nameInput");
+  const nameInput = document.getElementById("nameInput") as HTMLInputElement;
   const randomHue = 2 * Math.floor(Math.random() * 181);
   const ourPlayer = players.add(
     peerID,
@@ -122,6 +125,12 @@ import { handleCameraPerspective } from "./run/handle_camera_perspective";
     randomHue
   );
   camera.parent = ourPlayer.mesh;
+
+  // Render list of players.
+  ReactDOM.render(
+    <PlayersList players={players} ourPlayer={ourPlayer} />,
+    document.getElementById("playersListRoot")
+  );
 
   // Setup WebRTC. Do this synchronously with creating ourPlayer.
   new PeerJSManager(peerServer, ourPlayer, players, ourAudioStream);
