@@ -1,5 +1,6 @@
 import express = require("express");
 import path = require("path");
+import { Server } from "http";
 import https = require("https");
 import fs = require("fs");
 import WebSocket = require("ws");
@@ -11,15 +12,28 @@ import * as collabs from "@collabs/collabs";
 const app = express();
 const port = process.env.PORT || 3000;
 
+const useHttps = process.argv[2] === "-s";
+console.log(`useHttps: ${useHttps}`);
+
 // Serve build/site under /.
 app.use("/", express.static(path.join(__dirname, "../../site")));
-const key = fs.readFileSync(path.join(__dirname, "../../../keys/demo-key.pem"));
-const cert = fs.readFileSync(
-  path.join(__dirname, "../../../keys/demo-cert.pem")
-);
-const server = https
-  .createServer({ key, cert }, app)
-  .listen(port, () => console.log(`Listening at https://localhost:${port}/`));
+
+let server: Server;
+if (useHttps) {
+  const key = fs.readFileSync(
+    path.join(__dirname, "../../../keys/demo-key.pem")
+  );
+  const cert = fs.readFileSync(
+    path.join(__dirname, "../../../keys/demo-cert.pem")
+  );
+  server = https
+    .createServer({ key, cert }, app)
+    .listen(port, () => console.log(`Listening at https://localhost:${port}/`));
+} else {
+  server = app.listen(port, () =>
+    console.log(`Listening at http://localhost:${port}/`)
+  );
+}
 
 // Server replica.
 const serverReplica = new SerialRuntime({
