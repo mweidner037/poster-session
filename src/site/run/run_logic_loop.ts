@@ -1,8 +1,15 @@
 import { MyVector3 } from "../../common/util/babylon_types";
-import { Player } from "../state/player";
+import { PlayerAudio } from "../calling";
+import { HIGHLIGHT_THRESHOLD, Player } from "../state/player";
 import { PlayerSet } from "../state/player_set";
 
-export function runLogicLoop(ourPlayer: Player, players: PlayerSet) {
+export function runLogicLoop(
+  ourPlayer: Player,
+  players: PlayerSet,
+  ourAudioStream: MediaStream
+) {
+  const ourPlayerAudio = new PlayerAudio(ourAudioStream, undefined, true);
+
   setInterval(() => {
     // Send actual position/rotation to the server.
     if (
@@ -20,5 +27,9 @@ export function runLogicLoop(ourPlayer: Player, players: PlayerSet) {
     for (const player of players.values()) {
       if (player !== ourPlayer) player.bigTick(ourPlayer);
     }
+
+    // Display local user audio level.
+    const level = ourPlayerAudio.getLevel();
+    ourPlayer.setHighlighted(level > HIGHLIGHT_THRESHOLD);
   }, 100);
 }

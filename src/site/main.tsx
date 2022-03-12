@@ -148,5 +148,5 @@ import { PlayersList } from "./components/players_list";
 
   handleCameraPerspective(camera, scene);
 
-  runLogicLoop(ourPlayer, players);
+  runLogicLoop(ourPlayer, players, ourAudioStream);
 })();
