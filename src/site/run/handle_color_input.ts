@@ -1,6 +1,9 @@
 import { Player } from "../state/player";
 
-export function handleColorInput(ourPlayer: Player) {
+export function handleColorInput(
+  ourPlayer: Player,
+  renderCanvas: HTMLCanvasElement
+) {
   const canvas = <HTMLCanvasElement>document.getElementById("colorInput");
   const ctx = canvas.getContext("2d")!;
 
@@ -32,5 +35,6 @@ export function handleColorInput(ourPlayer: Player) {
     hue = Math.min(360, Math.max(0, hue));
     ourPlayer.state.hue.value = hue;
     redraw();
+    renderCanvas.focus();
   });
 }

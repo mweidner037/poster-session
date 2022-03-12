@@ -2,13 +2,10 @@ import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import { CAMERA_PERSPECTIVES } from "../run/handle_camera_perspective";
 import { addTiledGround } from "./tiled_ground";
 
-export function createScene(): [
-  BABYLON.Scene,
-  BABYLON.UniversalCamera,
-  BABYLON.HighlightLayer
-] {
-  const canvas = <HTMLCanvasElement>document.getElementById("renderCanvas");
-  const engine = new BABYLON.Engine(canvas, true, { stencil: true });
+export function createScene(
+  renderCanvas: HTMLCanvasElement
+): [BABYLON.Scene, BABYLON.UniversalCamera, BABYLON.HighlightLayer] {
+  const engine = new BABYLON.Engine(renderCanvas, true, { stencil: true });
   const scene = new BABYLON.Scene(engine);
 
   // TODO: if we use Y in volume calcs and it can be pointing
@@ -32,15 +29,15 @@ export function createScene(): [
   });
 
   function onResize() {
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
+    renderCanvas.width = renderCanvas.offsetWidth;
+    renderCanvas.height = renderCanvas.offsetHeight;
     engine.resize();
   }
 
-  // Resize the canvas to fit its CSS dimensions.
+  // Resize the renderCanvas to fit its CSS dimensions.
   onResize();
   const observer = new ResizeObserver(onResize);
-  observer.observe(canvas);
+  observer.observe(renderCanvas);
   window.addEventListener("resize", onResize);
 
   return [scene, camera, highlightLayer];

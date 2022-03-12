@@ -14,7 +14,6 @@ const TEXTURE_HEIGHT = 60; // In pixels
 const TEXTURE_WIDTH = Math.ceil((TEXTURE_HEIGHT * NAME_WIDTH) / NAME_HEIGHT); // Preserve aspect ratio
 const MAX_FONT_SIZE = Math.floor(TEXTURE_HEIGHT * (4 / 3) * 0.8); // Texture height in pt, scaled by 0.8 for margin
 
-const HIGHLIGHT_COLOR = BABYLON.Color3.Green();
 export const HIGHLIGHT_THRESHOLD = 70;
 
 export class Player {
@@ -82,6 +81,11 @@ export class Player {
       this.displayMeshMaterial.diffuseColor
     );
     this.onDisplayNameSet();
+    if (this.isHighlighted) {
+      // Update the highlight color.
+      this.setHighlighted(false);
+      this.setHighlighted(true);
+    }
   }
 
   private onDisplayNameSet() {
@@ -144,10 +148,18 @@ export class Player {
   }
 
   private isHighlighted = false;
+  private readonly colorForHighlight = new BABYLON.Color3();
+
   setHighlighted(highlight: boolean) {
     if (highlight !== this.isHighlighted) {
       if (highlight) {
-        this.highlightLayer.addMesh(this.displayMesh, HIGHLIGHT_COLOR);
+        BABYLON.Color3.HSVtoRGBToRef(
+          this.state.hue.value,
+          0.5,
+          0.5,
+          this.colorForHighlight
+        );
+        this.highlightLayer.addMesh(this.displayMesh, this.colorForHighlight);
       } else {
         this.highlightLayer.removeMesh(this.displayMesh);
       }

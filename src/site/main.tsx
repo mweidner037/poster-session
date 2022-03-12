@@ -84,7 +84,10 @@ import { PlayersList } from "./components/players_list";
   });
 
   // Create scene.
-  const [scene, camera, highlightLayer] = createScene();
+  const renderCanvas = document.getElementById(
+    "renderCanvas"
+  ) as HTMLCanvasElement;
+  const [scene, camera, highlightLayer] = createScene(renderCanvas);
 
   // Start getting player mesh.
   const bearMeshImportPromise = BABYLON.SceneLoader.ImportMeshAsync(
@@ -139,9 +142,9 @@ import { PlayersList } from "./components/players_list";
   // Run app
   // -----------------------------------------------------
 
-  handleNameInput(ourPlayer);
+  handleNameInput(ourPlayer, renderCanvas);
 
-  handleColorInput(ourPlayer);
+  handleColorInput(ourPlayer, renderCanvas);
 
   const keyTracker = new KeyTracker(scene);
   handlePlayerMovement(ourPlayer, players, keyTracker, scene);
