@@ -53,6 +53,11 @@ import { PlayersList } from "./components/players_list";
   ws.addEventListener("message", (e) => {
     const message = JSON.parse(e.data) as WebSocketMessage;
     if (message.type === "load") {
+      if (replica.isLoaded) {
+        // TODO: if this happens, it means our connection dropped
+        // temporarily. Need to back-fill missed data.
+        return;
+      }
       replica.load(
         collabs.Optional.of(collabs.stringAsBytes(message.saveData))
       );
@@ -152,4 +157,9 @@ import { PlayersList } from "./components/players_list";
   handleCameraPerspective(camera, scene);
 
   runLogicLoop(ourPlayer, players, ourAudioStream);
+
+  // Keep-alive for Heroku server.
+  setInterval(() => {
+    send({ type: "ping" });
+  }, 30000);
 })();

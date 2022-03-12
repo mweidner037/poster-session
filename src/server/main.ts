@@ -103,6 +103,9 @@ wsServer.on("connection", (ws) => {
         // Broadcast to all clients (including sender).
         broadcast(message.msg);
         break;
+      case "ping":
+        // Okay.
+        break;
     }
   });
 

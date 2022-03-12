@@ -13,4 +13,12 @@ export interface ReplicaIDMessage {
   replicaId: string;
 }
 
-export type WebSocketMessage = LoadMessage | CollabMessage | ReplicaIDMessage;
+export interface PingMessage {
+  type: "ping";
+}
+
+export type WebSocketMessage =
+  | LoadMessage
+  | CollabMessage
+  | ReplicaIDMessage
+  | PingMessage;
