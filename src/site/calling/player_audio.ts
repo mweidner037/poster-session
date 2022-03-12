@@ -1,3 +1,5 @@
+import { globalAudioContext } from "./audio_context";
+
 // Stream split and volume based on
 // https://github.com/Meshiest/demo-proximity-voice/blob/f19b87893a9656c4f2b49523729cf698f3f9c086/public/app.js#L238
 // which is CC0-1.0 licensed.
@@ -13,9 +15,8 @@
  * Appropriate for the local user's audio.
  */
 export class PlayerAudio {
-  private readonly context: AudioContext;
   private readonly source: MediaStreamAudioSourceNode;
-  private readonly channels?: { left: GainNode; right: GainNode };
+  private channels?: { left: GainNode; right: GainNode };
   private readonly analyser: AnalyserNode;
 
   private readonly ansArray: Uint8Array;
@@ -25,12 +26,10 @@ export class PlayerAudio {
     { left = 1, right = 1 } = {},
     levelOnly = false
   ) {
-    // create audio context using the stream as a source
-    this.context = new AudioContext();
-    this.source = this.context.createMediaStreamSource(stream);
+    this.source = globalAudioContext.createMediaStreamSource(stream);
 
     // Create and connect the analyser.
-    this.analyser = new AnalyserNode(this.context);
+    this.analyser = new AnalyserNode(globalAudioContext);
     // No idea what to put here, just copying
     // https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/smoothingTimeConstant#example
     // this.analyser.minDecibels = -90;
@@ -41,10 +40,12 @@ export class PlayerAudio {
     this.source.connect(this.analyser);
 
     if (!levelOnly) {
+      // Workaround for https://bugs.chromium.org/p/chromium/issues/detail?id=933677
+      new Audio().srcObject = stream;
       // create a channel for each ear (left, right)
       this.channels = {
-        left: this.context.createGain(),
-        right: this.context.createGain(),
+        left: globalAudioContext.createGain(),
+        right: globalAudioContext.createGain(),
       };
 
       // connect the gains
@@ -52,7 +53,7 @@ export class PlayerAudio {
       this.source.connect(this.channels.right);
 
       // create a merger to join the two gains
-      const merger = this.context.createChannelMerger(2);
+      const merger = globalAudioContext.createChannelMerger(2);
       this.channels.left.connect(merger, 0, 0);
       this.channels.right.connect(merger, 0, 1);
 
@@ -60,7 +61,7 @@ export class PlayerAudio {
       this.setVolume(left, right);
 
       // connect the merger to the audio context
-      merger.connect(this.context.destination);
+      merger.connect(globalAudioContext.destination);
     }
   }
 
@@ -93,8 +94,12 @@ export class PlayerAudio {
     return sum / this.ansArray.length;
   }
 
-  // close the context, stop the audio
+  // stop the audio
   close() {
-    return this.context.close();
+    if (this.channels !== undefined) {
+      this.channels.left.disconnect();
+      this.channels.right.disconnect();
+      this.channels = undefined;
+    }
   }
 }

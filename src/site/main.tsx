@@ -8,7 +8,12 @@ import { MyVector3 } from "../common/util/babylon_types";
 import { WebSocketMessage } from "../common/util/web_socket_message";
 import { PlayerSet } from "./state/player_set";
 import Peer from "peerjs";
-import { getAudioInput, peerIDFromString, PeerJSManager } from "./calling";
+import {
+  getAudioInput,
+  peerIDFromString,
+  PeerJSManager,
+  PlayerAudio,
+} from "./calling";
 import { KeyTracker } from "./run/key_tracker";
 import { handleNameInput } from "./run/handle_name_input";
 import { handlePlayerMovement } from "./run/handle_player_movement";
@@ -19,6 +24,7 @@ import { handleCameraPerspective } from "./run/handle_camera_perspective";
 import React from "react";
 import ReactDOM from "react-dom";
 import { PlayersList } from "./components/players_list";
+import { globalAudioContext } from "./calling/audio_context";
 
 (async function () {
   // -----------------------------------------------------
@@ -156,10 +162,27 @@ import { PlayersList } from "./components/players_list";
 
   handleCameraPerspective(camera, scene);
 
-  runLogicLoop(ourPlayer, players, ourAudioStream);
+  const ourPlayerAudio = new PlayerAudio(ourAudioStream, undefined, true);
+  runLogicLoop(ourPlayer, players, ourPlayerAudio);
 
   // Keep-alive for Heroku server.
   setInterval(() => {
     send({ type: "ping" });
   }, 30000);
+
+  // Chrome wants you to resume AudioContext's after the user "interacts with the page".
+  window.addEventListener(
+    "click",
+    async () => {
+      console.log("Resuming globalAudioContext...");
+      try {
+        await globalAudioContext.resume();
+        // globalAudioVideoElem.play();
+        console.log("  Resumed.");
+      } catch (err) {
+        console.log("  Failed to resume.");
+      }
+    },
+    { once: true }
+  );
 })();

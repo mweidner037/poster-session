@@ -6,10 +6,8 @@ import { PlayerSet } from "../state/player_set";
 export function runLogicLoop(
   ourPlayer: Player,
   players: PlayerSet,
-  ourAudioStream: MediaStream
+  ourPlayerAudio: PlayerAudio
 ) {
-  const ourPlayerAudio = new PlayerAudio(ourAudioStream, undefined, true);
-
   setInterval(() => {
     // Send actual position/rotation to the server.
     if (
