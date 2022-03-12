@@ -50,5 +50,8 @@
     "fix": "npm-run-all fix:*",
     "fix:format": "prettier --write .",
     "clean": "rimraf build"
+  },
+  "engines": {
+    "node": ">=16"
   }
 }
