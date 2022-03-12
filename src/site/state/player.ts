@@ -14,6 +14,9 @@ const TEXTURE_HEIGHT = 60; // In pixels
 const TEXTURE_WIDTH = Math.ceil((TEXTURE_HEIGHT * NAME_WIDTH) / NAME_HEIGHT); // Preserve aspect ratio
 const MAX_FONT_SIZE = Math.floor(TEXTURE_HEIGHT * (4 / 3) * 0.8); // Texture height in pt, scaled by 0.8 for margin
 
+const HIGHLIGHT_COLOR = BABYLON.Color3.Green();
+const HIGHLIGHT_THRESHOLD = 70;
+
 export class Player {
   readonly mesh: BABYLON.AbstractMesh;
   private readonly displayMeshMaterial: BABYLON.StandardMaterial;
@@ -23,7 +26,8 @@ export class Player {
 
   constructor(
     readonly state: PlayerState,
-    displayMesh: BABYLON.AbstractMesh,
+    private readonly displayMesh: BABYLON.Mesh,
+    private readonly highlightLayer: BABYLON.HighlightLayer,
     scene: BABYLON.Scene
   ) {
     this.mesh = new BABYLON.AbstractMesh("mesh");
@@ -124,7 +128,7 @@ export class Player {
   bigTick(ourPlayer: Player): void {
     // Update volume levels by distance and angle.
     if (this.audioConn !== null) {
-      this.audioConn.streamSplit.setVolume(
+      this.audioConn.audio.setVolume(
         ...calcVolumes(
           this.mesh.position,
           this.mesh.rotation,
@@ -132,6 +136,22 @@ export class Player {
           ourPlayer.mesh.rotation
         )
       );
+      // TODO: also do highlights for ourPlayer.
+      this.setHighlighted(
+        this.audioConn.audio.getLevel() > HIGHLIGHT_THRESHOLD
+      );
+    }
+  }
+
+  private isHighlighted = false;
+  setHighlighted(highlight: boolean) {
+    if (highlight !== this.isHighlighted) {
+      if (highlight) {
+        this.highlightLayer.addMesh(this.displayMesh, HIGHLIGHT_COLOR);
+      } else {
+        this.highlightLayer.removeMesh(this.displayMesh);
+      }
+      this.isHighlighted = highlight;
     }
   }
 }

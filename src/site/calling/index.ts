@@ -1,4 +1,4 @@
 export * from "./audio_input";
 export * from "./calc_volumes";
 export * from "./peerjs";
-export * from "./stream_split";
+export * from "./player_audio";

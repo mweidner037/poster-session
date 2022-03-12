@@ -2,9 +2,13 @@ import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import { CAMERA_PERSPECTIVES } from "../run/handle_camera_perspective";
 import { addTiledGround } from "./tiled_ground";
 
-export function createScene(): [BABYLON.Scene, BABYLON.UniversalCamera] {
+export function createScene(): [
+  BABYLON.Scene,
+  BABYLON.UniversalCamera,
+  BABYLON.HighlightLayer
+] {
   const canvas = <HTMLCanvasElement>document.getElementById("renderCanvas");
-  const engine = new BABYLON.Engine(canvas, true);
+  const engine = new BABYLON.Engine(canvas, true, { stencil: true });
   const scene = new BABYLON.Scene(engine);
 
   // TODO: if we use Y in volume calcs and it can be pointing
@@ -17,6 +21,8 @@ export function createScene(): [BABYLON.Scene, BABYLON.UniversalCamera] {
   );
 
   new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+
+  const highlightLayer = new BABYLON.HighlightLayer("highlight", scene);
 
   addTiledGround(scene);
 
@@ -37,5 +43,5 @@ export function createScene(): [BABYLON.Scene, BABYLON.UniversalCamera] {
   observer.observe(canvas);
   window.addEventListener("resize", onResize);
 
-  return [scene, camera];
+  return [scene, camera, highlightLayer];
 }

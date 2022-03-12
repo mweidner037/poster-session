@@ -2,7 +2,7 @@ import Peer from "peerjs";
 import { Player } from "../state/player";
 import { PlayerSet } from "../state/player_set";
 import { calcVolumes } from "./calc_volumes";
-import { StreamSplit } from "./stream_split";
+import { PlayerAudio } from "./player_audio";
 
 // Based on https://github.com/Meshiest/demo-voice/blob/master/public/index.html
 
@@ -25,11 +25,11 @@ export function peerIDFromString(anyID: string): string {
 export class PeerJSConnection {
   constructor(
     readonly call: Peer.MediaConnection,
-    readonly streamSplit: StreamSplit
+    readonly audio: PlayerAudio
   ) {}
 
   close() {
-    this.streamSplit.close();
+    this.audio.close();
     this.call.close();
   }
 }
@@ -153,19 +153,19 @@ export class PeerJSManager {
       return;
     }
 
-    // Create StreamSplit.
+    // Create PlayerAudio.
     const initialVolumes = calcVolumes(
       player.mesh.position,
       player.mesh.rotation,
       this.ourPlayer.mesh.position,
       this.ourPlayer.mesh.rotation
     );
-    const streamSplit = new StreamSplit(stream, {
+    const audio = new PlayerAudio(stream, {
       left: initialVolumes[0],
       right: initialVolumes[1],
     });
 
     // Set player.audioConn.
-    player.audioConn = new PeerJSConnection(call, streamSplit);
+    player.audioConn = new PeerJSConnection(call, audio);
   }
 }

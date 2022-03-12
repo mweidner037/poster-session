@@ -84,7 +84,7 @@ import { PlayersList } from "./components/players_list";
   });
 
   // Create scene.
-  const [scene, camera] = createScene();
+  const [scene, camera, highlightLayer] = createScene();
 
   // Start getting player mesh.
   const bearMeshImportPromise = BABYLON.SceneLoader.ImportMeshAsync(
@@ -112,7 +112,7 @@ import { PlayersList } from "./components/players_list";
   bearMesh.parent = null; // Clear rotation due to parent
   bearMesh.rotationQuaternion = null; // Ensure .rotation works
   bearMesh.rotation = new BABYLON.Vector3(-Math.PI / 2, Math.PI, 0);
-  const players = new PlayerSet(playerCollabs, bearMesh, scene);
+  const players = new PlayerSet(playerCollabs, bearMesh, highlightLayer, scene);
 
   // Create our player's entity and attach the camera.
   const nameInput = document.getElementById("nameInput") as HTMLInputElement;
