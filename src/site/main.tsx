@@ -1,12 +1,9 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
-import "@babylonjs/loaders/glTF"; // gltf file parser
-import { PlayerState, SerialMutCSet, SerialRuntime } from "../common/state";
+import { RoomState, SerialRuntime } from "../common/state";
 import * as collabs from "@collabs/collabs";
-import { PlayerStateArgsSerializer } from "../common/util/serialization";
 import ReconnectingWebSocket from "reconnecting-websocket";
 import { MyVector3 } from "../common/util/babylon_types";
 import { WebSocketMessage } from "../common/util/web_socket_message";
-import { PlayerSet } from "./state/player_set";
 import Peer from "peerjs";
 import {
   getAudioInput,
@@ -14,17 +11,21 @@ import {
   PeerJSManager,
   PlayerAudio,
 } from "./calling";
-import { KeyTracker } from "./run/key_tracker";
-import { handleNameInput } from "./run/handle_name_input";
-import { handlePlayerMovement } from "./run/handle_player_movement";
-import { runLogicLoop } from "./run/run_logic_loop";
 import { createScene } from "./scene/create_scene";
-import { handleColorInput } from "./run/handle_color_input";
-import { handleCameraPerspective } from "./run/handle_camera_perspective";
 import React from "react";
 import ReactDOM from "react-dom";
 import { PlayersList } from "./components/players_list";
-import { globalAudioContext } from "./calling/audio_context";
+import { Globals } from "./util/globals";
+import { Room } from "./state";
+import {
+  handleCameraPerspective,
+  handleColorInput,
+  handleNameInput,
+  KeyTracker,
+  runLogicLoop,
+} from "./run";
+import { handlePlayerMovement } from "./run/handle_player_movement";
+import { MeshStore } from "./scene/mesh_store";
 
 (async function () {
   // -----------------------------------------------------
@@ -35,14 +36,7 @@ import { globalAudioContext } from "./calling/audio_context";
   const replica = new SerialRuntime({
     batchingStrategy: new collabs.RateLimitBatchingStrategy(100),
   });
-  const playerCollabs = replica.registerCollab(
-    "players",
-    collabs.Pre(SerialMutCSet)(
-      collabs.ConstructorAsFunction(PlayerState),
-      "local",
-      new PlayerStateArgsSerializer()
-    )
-  );
+  const roomState = replica.registerCollab("room", collabs.Pre(RoomState)());
 
   // Connect to server.
   // TODO: reconnecting helps us on open, but there will still
@@ -73,7 +67,8 @@ import { globalAudioContext } from "./calling/audio_context";
   });
 
   // Get audio input. Do it now to start requesting user audio permission.
-  const ourAudioStream = getAudioInput();
+  const audioContext = new AudioContext();
+  const ourAudioStream = getAudioInput(audioContext);
 
   // Start connecting to PeerJS server.
   // TODO: IRL we would need our own PeerJS server, STUN server,
@@ -100,12 +95,17 @@ import { globalAudioContext } from "./calling/audio_context";
   ) as HTMLCanvasElement;
   const [scene, camera, highlightLayer] = createScene(renderCanvas);
 
+  const globals: Globals = {
+    renderCanvas,
+    scene,
+    highlightLayer,
+    meshStore: new MeshStore(scene),
+    keyTracker: new KeyTracker(scene),
+    audioContext,
+  };
+
   // Start getting player mesh.
-  const bearMeshImportPromise = BABYLON.SceneLoader.ImportMeshAsync(
-    undefined,
-    "/assets/",
-    "black_bear.gltf"
-  );
+  const bearMeshPromise = globals.meshStore.getMesh("black_bear.gltf", 1);
 
   // Wait for various things that need to happen before
   // we can create ourPlayer:
@@ -114,24 +114,24 @@ import { globalAudioContext } from "./calling/audio_context";
   // - Collabs state loads. (Note that further messages might
   // also be received by now.)
   // TODO: audio-less fallback for if PeerJS server fails to connect?
-  const [bearMeshImport] = await Promise.all([
-    bearMeshImportPromise,
+  const [bearMesh] = await Promise.all([
+    bearMeshPromise,
     peerServerOpenPromise,
     replica.nextEvent("Load"),
   ]);
 
-  // Finish setting up player mesh and create players.
-  const bearMesh = bearMeshImport.meshes[1];
+  // Finish setting up player mesh and create room.
   bearMesh.setEnabled(false); // This is a reference copy, not shown.
   bearMesh.parent = null; // Clear rotation due to parent
   bearMesh.rotationQuaternion = null; // Ensure .rotation works
   bearMesh.rotation = new BABYLON.Vector3(-Math.PI / 2, Math.PI, 0);
-  const players = new PlayerSet(playerCollabs, bearMesh, highlightLayer, scene);
+
+  const room = new Room(roomState, bearMesh, globals);
 
   // Create our player's entity and attach the camera.
   const nameInput = document.getElementById("nameInput") as HTMLInputElement;
   const randomHue = 2 * Math.floor(Math.random() * 181);
-  const ourPlayer = players.add(
+  const ourPlayer = room.players.add(
     peerID,
     new MyVector3(0, 0.5, 0),
     new MyVector3(0, 0, 0),
@@ -142,28 +142,52 @@ import { globalAudioContext } from "./calling/audio_context";
 
   // Render list of players.
   ReactDOM.render(
-    <PlayersList players={players} ourPlayer={ourPlayer} />,
+    <PlayersList players={room.players} ourPlayer={ourPlayer} />,
     document.getElementById("playersListRoot")
   );
 
   // Setup WebRTC. Do this synchronously with creating ourPlayer.
-  new PeerJSManager(peerServer, ourPlayer, players, ourAudioStream);
+  new PeerJSManager(
+    peerServer,
+    ourPlayer,
+    room.players,
+    ourAudioStream,
+    globals
+  );
 
   // -----------------------------------------------------
   // Run app
   // -----------------------------------------------------
 
-  handleNameInput(ourPlayer, renderCanvas);
+  handleNameInput(ourPlayer, globals);
 
-  handleColorInput(ourPlayer, renderCanvas);
+  handleColorInput(ourPlayer, globals);
 
-  const keyTracker = new KeyTracker(scene);
-  handlePlayerMovement(ourPlayer, players, keyTracker, scene);
+  handlePlayerMovement(ourPlayer, room.players, globals);
 
-  handleCameraPerspective(camera, scene);
+  handleCameraPerspective(camera, globals);
 
-  const ourPlayerAudio = new PlayerAudio(ourAudioStream, undefined, true);
-  runLogicLoop(ourPlayer, players, ourPlayerAudio);
+  const ourPlayerAudio = new PlayerAudio(
+    ourAudioStream,
+    globals,
+    undefined,
+    true
+  );
+  runLogicLoop(ourPlayer, room.players, ourPlayerAudio);
+
+  // // TODO: remove. Furniture test.
+  // globals.scene.onKeyboardObservable.add((e) => {
+  //   if (e.event.type === "keydown" && e.event.key.toLowerCase() === "f") {
+  //     // Add bear furniture at a random position and rotation.
+  //     const position = new BABYLON.Vector3(
+  //       -10 + 20 * Math.random(),
+  //       0.5,
+  //       -10 + 20 * Math.random()
+  //     );
+  //     const rotation = new BABYLON.Vector3(0, 2 * Math.PI * Math.random(), 0);
+  //     room.furnitures.addBoring(position, rotation, "black_bear.gltf");
+  //   }
+  // });
 
   // Keep-alive for Heroku server.
   setInterval(() => {
@@ -174,9 +198,9 @@ import { globalAudioContext } from "./calling/audio_context";
   window.addEventListener(
     "click",
     async () => {
-      console.log("Resuming globalAudioContext...");
+      console.log("Resuming global AudioContext...");
       try {
-        await globalAudioContext.resume();
+        await globals.audioContext.resume();
         // globalAudioVideoElem.play();
         console.log("  Resumed.");
       } catch (err) {

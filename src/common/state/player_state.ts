@@ -12,9 +12,9 @@ export class PlayerState extends collabs.CObject {
 
   constructor(
     initToken: collabs.InitToken,
-    readonly peerID: string,
     initialPosition: MyVector3,
     initialRotation: MyVector3,
+    readonly peerID: string,
     initialDisplayName: string,
     initialHue: number
   ) {

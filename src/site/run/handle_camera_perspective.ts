@@ -1,4 +1,5 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
+import { Globals } from "../util/globals";
 
 export const CAMERA_PERSPECTIVES = [
   // First person
@@ -9,10 +10,10 @@ export const CAMERA_PERSPECTIVES = [
 
 export function handleCameraPerspective(
   camera: BABYLON.UniversalCamera,
-  scene: BABYLON.Scene
+  globals: Globals
 ) {
   let index = 0;
-  scene.onKeyboardObservable.add((e) => {
+  globals.scene.onKeyboardObservable.add((e) => {
     if (e.event.type === "keydown" && e.event.key.toLowerCase() === "c") {
       // Toggle camera perspective.
       index = (index + 1) % CAMERA_PERSPECTIVES.length;

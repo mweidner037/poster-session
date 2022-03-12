@@ -5,6 +5,7 @@ import { addTiledGround } from "./tiled_ground";
 export function createScene(
   renderCanvas: HTMLCanvasElement
 ): [BABYLON.Scene, BABYLON.UniversalCamera, BABYLON.HighlightLayer] {
+  // stencil: true needed for HighlightLayer.
   const engine = new BABYLON.Engine(renderCanvas, true, { stencil: true });
   const scene = new BABYLON.Scene(engine);
 

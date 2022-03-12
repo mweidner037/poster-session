@@ -1,9 +1,7 @@
 import { Player } from "../state/player";
+import { Globals } from "../util/globals";
 
-export function handleNameInput(
-  ourPlayer: Player,
-  mainCanvas: HTMLCanvasElement
-) {
+export function handleNameInput(ourPlayer: Player, globals: Globals) {
   const nameInput = <HTMLInputElement>document.getElementById("nameInput");
   const nameInputForm = <HTMLFormElement>(
     document.getElementById("nameInputForm")
@@ -11,7 +9,7 @@ export function handleNameInput(
   nameInputForm.addEventListener("submit", (e) => {
     e.preventDefault();
     ourPlayer.state.displayName.value = nameInput.value;
-    mainCanvas.focus();
+    globals.renderCanvas.focus();
   });
   nameInput.addEventListener("blur", () => {
     ourPlayer.state.displayName.value = nameInput.value;

@@ -32,7 +32,7 @@ export class SerialMutCSet<C extends collabs.Collab, Args extends any[]>
       valueInitToken: collabs.InitToken,
       ...args: Args
     ) => C,
-    processEcho: "local" | "remote" = "remote",
+    processEcho: "local" | "remote",
     private readonly argsSerializer: collabs.Serializer<Args> = collabs.DefaultSerializer.getInstance(
       initToken.runtime
     )

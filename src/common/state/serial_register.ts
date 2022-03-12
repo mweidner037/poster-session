@@ -11,7 +11,7 @@ export class SerialCRegister<T>
   constructor(
     initToken: collabs.InitToken,
     initialValue: T,
-    processEcho: "local" | "remote" | "both" = "remote",
+    processEcho: "local" | "remote" | "both",
     private readonly serializer: collabs.Serializer<T> = collabs.DefaultSerializer.getInstance(
       initToken.runtime
     )

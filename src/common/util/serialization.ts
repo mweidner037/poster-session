@@ -17,57 +17,38 @@ export class MyVector3Serializer implements collabs.Serializer<MyVector3> {
   static instance = new MyVector3Serializer();
 }
 
-export class PlayerStateArgsSerializer
+/**
+ * otherArgs serialized using BSON.
+ */
+export class PositionRotationOtherSerializer<O extends unknown[]>
   implements
     collabs.Serializer<
-      [
-        peerID: string,
-        position: MyVector3,
-        rotation: MyVector3,
-        name: string,
-        hue: number
-      ]
+      [position: MyVector3, rotation: MyVector3, ...otherArgs: O]
     >
 {
   serialize(
-    value: [
-      peerID: string,
-      position: MyVector3,
-      rotation: MyVector3,
-      name: string,
-      hue: number
-    ]
+    value: [position: MyVector3, rotation: MyVector3, ...otherArgs: O]
   ): Uint8Array {
-    const [peerID, p, r, name, hue] = value;
+    const [p, r, ...otherArgs] = value;
     return BSON.serialize({
-      peerID,
       px: p.x,
       py: p.y,
       pz: p.z,
       rx: r.x,
       ry: r.y,
       rz: r.z,
-      name,
-      hue,
+      o: otherArgs,
     });
   }
 
   deserialize(
     message: Uint8Array
-  ): [
-    peerID: string,
-    position: MyVector3,
-    rotation: MyVector3,
-    name: string,
-    hue: number
-  ] {
+  ): [position: MyVector3, rotation: MyVector3, ...otherArgs: O] {
     const decoded = BSON.deserialize(message);
     return [
-      decoded.peerID,
       new MyVector3(decoded.px, decoded.py, decoded.pz),
       new MyVector3(decoded.rx, decoded.ry, decoded.rz),
-      decoded.name,
-      decoded.hue,
+      ...(<O>decoded.o),
     ];
   }
 }
