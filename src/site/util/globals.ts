@@ -10,3 +10,24 @@ export interface Globals {
   keyTracker: KeyTracker;
   audioContext: AudioContext;
 }
+
+let globalsVar: Globals | null = null;
+
+export function Globals(): Globals {
+  if (globalsVar === null) {
+    throw new Error(
+      "Cannot call Globals() until after main.tsx calls setGlobals"
+    );
+  }
+  return globalsVar;
+}
+
+/**
+ * Only called from main.tsx.
+ */
+export function setGlobals(globals: Globals): void {
+  if (globalsVar !== null) {
+    throw new Error("setGlobals called twice");
+  }
+  globalsVar = globals;
+}

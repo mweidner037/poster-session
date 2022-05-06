@@ -1,7 +1,6 @@
 import Peer from "peerjs";
 import { Player } from "../state/player";
 import { PlayerSet } from "../state/player_set";
-import { Globals } from "../util/globals";
 import { calcVolumes } from "./calc_volumes";
 import { PlayerAudio } from "./player_audio";
 
@@ -63,8 +62,7 @@ export class PeerJSManager {
     private readonly peer: Peer,
     private readonly ourPlayer: Player,
     private readonly players: PlayerSet,
-    private readonly ourAudioStream: MediaStream,
-    private readonly globals: Globals
+    private readonly ourAudioStream: MediaStream
   ) {
     // Logging info.
     this.peer.on("disconnected", () => console.error("PeerJS disconnected"));
@@ -162,7 +160,7 @@ export class PeerJSManager {
       this.ourPlayer.mesh.position,
       this.ourPlayer.mesh.rotation
     );
-    const audio = new PlayerAudio(stream, this.globals, {
+    const audio = new PlayerAudio(stream, {
       left: initialVolumes[0],
       right: initialVolumes[1],
     });

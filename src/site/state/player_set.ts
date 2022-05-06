@@ -32,8 +32,7 @@ export class PlayerSet extends collabs.EventEmitter<PlayerSetEventsRecord> {
         hue: number
       ]
     >,
-    private readonly meshTemplate: BABYLON.AbstractMesh,
-    private readonly globals: Globals
+    private readonly meshTemplate: BABYLON.AbstractMesh
   ) {
     super();
 
@@ -49,8 +48,8 @@ export class PlayerSet extends collabs.EventEmitter<PlayerSetEventsRecord> {
     const entity = new Player(
       playerState,
       displayMesh,
-      this.globals.highlightLayer,
-      this.globals.scene
+      Globals().highlightLayer,
+      Globals().scene
     );
     this.playersByState.set(playerState, entity);
 

@@ -14,7 +14,7 @@ import {
 import { createScene } from "./scene/create_scene";
 import React from "react";
 import ReactDOM from "react-dom";
-import { Globals } from "./util/globals";
+import { Globals, setGlobals } from "./util/globals";
 import { Room } from "./state";
 import {
   handleCameraPerspective,
@@ -95,17 +95,17 @@ import { PlayersList, Toolbox, ToolboxState } from "./components";
   ) as HTMLCanvasElement;
   const [scene, camera, highlightLayer] = createScene(renderCanvas);
 
-  const globals: Globals = {
+  setGlobals({
     renderCanvas,
     scene,
     highlightLayer,
     meshStore: new MeshStore(scene),
     keyTracker: new KeyTracker(scene),
     audioContext,
-  };
+  });
 
   // Start getting player mesh.
-  const bearMeshPromise = globals.meshStore.getMesh("black_bear.gltf", 1);
+  const bearMeshPromise = Globals().meshStore.getMesh("black_bear.gltf", 1);
 
   // Wait for various things that need to happen before
   // we can create ourPlayer:
@@ -126,7 +126,7 @@ import { PlayersList, Toolbox, ToolboxState } from "./components";
   bearMesh.rotationQuaternion = null; // Ensure .rotation works
   bearMesh.rotation = new BABYLON.Vector3(-Math.PI / 2, Math.PI, 0);
 
-  const room = new Room(roomState, bearMesh, globals);
+  const room = new Room(roomState, bearMesh);
 
   // Create our player's entity and attach the camera.
   const nameInput = document.getElementById("nameInput") as HTMLInputElement;
@@ -194,39 +194,28 @@ import { PlayersList, Toolbox, ToolboxState } from "./components";
   });
 
   // Setup WebRTC. Do this synchronously with creating ourPlayer.
-  new PeerJSManager(
-    peerServer,
-    ourPlayer,
-    room.players,
-    ourAudioStream,
-    globals
-  );
+  new PeerJSManager(peerServer, ourPlayer, room.players, ourAudioStream);
 
   // -----------------------------------------------------
   // Run app
   // -----------------------------------------------------
 
-  handleNameInput(ourPlayer, globals);
+  handleNameInput(ourPlayer);
 
-  handleColorInput(ourPlayer, globals);
+  handleColorInput(ourPlayer);
 
-  handlePlayerMovement(ourPlayer, room.players, globals);
+  handlePlayerMovement(ourPlayer, room.players);
 
-  handleCameraPerspective(camera, globals);
+  handleCameraPerspective(camera);
 
-  const ourPlayerAudio = new PlayerAudio(
-    ourAudioStream,
-    globals,
-    undefined,
-    true
-  );
+  const ourPlayerAudio = new PlayerAudio(ourAudioStream, undefined, true);
   runLogicLoop(ourPlayer, room.players, ourPlayerAudio);
 
   // Chrome wants you to resume AudioContext's after the user "interacts with the page".
   async function resumeAudioContext() {
     console.log("Resuming global AudioContext...");
     try {
-      await globals.audioContext.resume();
+      await Globals().audioContext.resume();
       console.log("  Resumed.");
     } catch (err) {
       console.log("  Failed to resume.");
@@ -236,7 +225,7 @@ import { PlayersList, Toolbox, ToolboxState } from "./components";
   window.addEventListener("click", resumeAudioContext, {
     once: true,
   });
-  globals.scene.onKeyboardObservable.add(
+  Globals().scene.onKeyboardObservable.add(
     resumeAudioContext,
     undefined,
     undefined,

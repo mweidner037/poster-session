@@ -1,12 +1,13 @@
 import { FurnitureState, SerialMutCSet, ToArgs } from "../../common/state";
 import { MyVector3 } from "../../common/util/babylon_types";
 import { Globals } from "../util/globals";
-import { BoringFurniture, Furniture } from "./furnitures";
+import { BoringFurniture } from "./furnitures";
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import {
   BoringFurnitureState,
   FurnitureStateClasses,
-} from "../../common/state/furnitures";
+} from "../../common/state/furniture_states";
+import { Furniture } from "./furniture";
 
 export class FurnitureSet {
   private readonly furnituresByState = new Map<FurnitureState, Furniture>();
@@ -19,8 +20,7 @@ export class FurnitureSet {
     readonly state: SerialMutCSet<
       FurnitureState,
       ToArgs<keyof typeof FurnitureStateClasses>
-    >,
-    readonly globals: Globals
+    >
   ) {
     for (const furnitureState of this.state) {
       this.onAdd(furnitureState);
@@ -33,7 +33,7 @@ export class FurnitureSet {
     let furniture: Furniture;
 
     if (furnitureState instanceof BoringFurnitureState) {
-      const meshTemplatePromise = this.globals.meshStore.getMesh(
+      const meshTemplatePromise = Globals().meshStore.getMesh(
         "furnitures/" + furnitureState.mesh,
         1
       );
@@ -42,11 +42,7 @@ export class FurnitureSet {
         meshCopy.setEnabled(true);
         return meshCopy;
       });
-      furniture = new BoringFurniture(
-        furnitureState,
-        meshCopyPromise,
-        this.globals
-      );
+      furniture = new BoringFurniture(furnitureState, meshCopyPromise);
     } else {
       throw new Error(
         "Unknown furnitureState type: " + furnitureState.constructor.name

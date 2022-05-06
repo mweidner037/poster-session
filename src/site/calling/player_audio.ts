@@ -23,14 +23,13 @@ export class PlayerAudio {
 
   constructor(
     readonly stream: MediaStream,
-    globals: Globals,
     { left = 1, right = 1 } = {},
     levelOnly = false
   ) {
-    this.source = globals.audioContext.createMediaStreamSource(stream);
+    this.source = Globals().audioContext.createMediaStreamSource(stream);
 
     // Create and connect the analyser.
-    this.analyser = new AnalyserNode(globals.audioContext);
+    this.analyser = new AnalyserNode(Globals().audioContext);
     // No idea what to put here, just copying
     // https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/smoothingTimeConstant#example
     // this.analyser.minDecibels = -90;
@@ -45,8 +44,8 @@ export class PlayerAudio {
       new Audio().srcObject = stream;
       // create a channel for each ear (left, right)
       this.channels = {
-        left: globals.audioContext.createGain(),
-        right: globals.audioContext.createGain(),
+        left: Globals().audioContext.createGain(),
+        right: Globals().audioContext.createGain(),
       };
 
       // connect the gains
@@ -54,7 +53,7 @@ export class PlayerAudio {
       this.source.connect(this.channels.right);
 
       // create a merger to join the two gains
-      const merger = globals.audioContext.createChannelMerger(2);
+      const merger = Globals().audioContext.createChannelMerger(2);
       this.channels.left.connect(merger, 0, 0);
       this.channels.right.connect(merger, 0, 1);
 
@@ -62,7 +61,7 @@ export class PlayerAudio {
       this.setVolume(left, right);
 
       // connect the merger to the audio context
-      merger.connect(globals.audioContext.destination);
+      merger.connect(Globals().audioContext.destination);
     }
   }
 

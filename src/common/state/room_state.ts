@@ -1,7 +1,7 @@
 import * as collabs from "@collabs/collabs";
 import { MyVector3 } from "../util/babylon_types";
 import { ConstructorParametersMinusInitToken } from "../util/types";
-import { FurnitureStateClasses } from "./furnitures";
+import { FurnitureStateClasses } from "./furniture_states";
 import { FurnitureState } from "./furniture_state";
 import { PlayerState } from "./player_state";
 import { SerialMutCSet } from "./serial_mut_set";

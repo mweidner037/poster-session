@@ -1,8 +1,7 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import { FurnitureState } from "../../../common/state";
 import { MyVector3 } from "../../../common/util/babylon_types";
-import { Globals } from "../../util/globals";
-import { Furniture } from "./furniture";
+import { Furniture } from "../furniture";
 
 /**
  * Non-interactive furniture, just a mesh.
@@ -11,11 +10,7 @@ export class BoringFurniture extends Furniture {
   private mesh: BABYLON.Mesh | null = null;
 
   // TODO: texture
-  constructor(
-    state: FurnitureState,
-    meshPromise: Promise<BABYLON.Mesh>,
-    private readonly globals: Globals
-  ) {
+  constructor(state: FurnitureState, meshPromise: Promise<BABYLON.Mesh>) {
     super(state);
 
     meshPromise.then((mesh) => {

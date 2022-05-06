@@ -1,4 +1,4 @@
-import { FurnitureState } from "../../../common/state";
+import { FurnitureState } from "../../common/state";
 
 export abstract class Furniture {
   constructor(readonly state: FurnitureState) {}

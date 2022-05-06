@@ -1,7 +1,7 @@
 import { Player } from "../state/player";
 import { Globals } from "../util/globals";
 
-export function handleColorInput(ourPlayer: Player, globals: Globals) {
+export function handleColorInput(ourPlayer: Player) {
   const canvas = <HTMLCanvasElement>document.getElementById("colorInput");
   const ctx = canvas.getContext("2d")!;
 
@@ -33,6 +33,6 @@ export function handleColorInput(ourPlayer: Player, globals: Globals) {
     hue = Math.min(360, Math.max(0, hue));
     ourPlayer.state.hue.value = hue;
     redraw();
-    globals.renderCanvas.focus();
+    Globals().renderCanvas.focus();
   });
 }
