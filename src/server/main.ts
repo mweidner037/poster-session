@@ -108,3 +108,10 @@ wsServer.on("connection", (ws) => {
   const initialState = serverReplica.save();
   send(ws, { type: "load", saveData: collabs.bytesAsString(initialState) });
 });
+
+// Keep-alive for Heroku server.
+setInterval(() => {
+  for (const client of clients) {
+    client.ping();
+  }
+}, 30000);

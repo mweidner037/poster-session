@@ -1,5 +1,6 @@
 import React from "react";
 import { Player } from "../state/player";
+import "./player_in_list.css";
 
 interface Props {
   player: Player;

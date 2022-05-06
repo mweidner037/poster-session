@@ -14,7 +14,6 @@ import {
 import { createScene } from "./scene/create_scene";
 import React from "react";
 import ReactDOM from "react-dom";
-import { PlayersList } from "./components/players_list";
 import { Globals } from "./util/globals";
 import { Room } from "./state";
 import {
@@ -26,6 +25,7 @@ import {
 } from "./run";
 import { handlePlayerMovement } from "./run/handle_player_movement";
 import { MeshStore } from "./scene/mesh_store";
+import { PlayersList, Toolbox, ToolboxState } from "./components";
 
 (async function () {
   // -----------------------------------------------------
@@ -146,6 +146,53 @@ import { MeshStore } from "./scene/mesh_store";
     document.getElementById("playersListRoot")
   );
 
+  // Render toolbox. TODO: only in editor mode.
+  let toolboxState!: ToolboxState;
+  ReactDOM.render(
+    <Toolbox
+      onChange={(state) => {
+        toolboxState = state;
+        scene.defaultCursor =
+          toolboxState.selected === "Mouse" ? "default" : "pointer";
+      }}
+    />,
+    document.getElementById("toolboxRoot")
+  );
+  // TODO: only change mouse cursor when it's over a valid location?
+  scene.onPointerObservable.add((e) => {
+    if (e.type == BABYLON.PointerEventTypes.POINTERDOWN) {
+      if (e.pickInfo !== null && e.pickInfo.pickedMesh !== null) {
+        // Place furniture.
+        // TODO: only on ground, not on furniture
+        if (e.pickInfo.distance < 5 && toolboxState.selected !== "Mouse") {
+          // Determine rotation angle: face towards ray.
+          const angle = Math.atan2(
+            e.pickInfo.ray!.direction.x,
+            e.pickInfo.ray!.direction.z
+          );
+          const rotation = new BABYLON.Vector3(0, angle, 0);
+          // TODO: make tool do this
+          switch (toolboxState.selected) {
+            case "Bear":
+              room.furnitures.addBoring(
+                e.pickInfo.pickedPoint!,
+                rotation,
+                "black_bear.gltf"
+              );
+              break;
+            case "Easel":
+              room.furnitures.addBoring(
+                e.pickInfo.pickedPoint!,
+                rotation,
+                "easel.gltf"
+              );
+              break;
+          }
+        }
+      }
+    }
+  });
+
   // Setup WebRTC. Do this synchronously with creating ourPlayer.
   new PeerJSManager(
     peerServer,
@@ -175,38 +222,25 @@ import { MeshStore } from "./scene/mesh_store";
   );
   runLogicLoop(ourPlayer, room.players, ourPlayerAudio);
 
-  // // TODO: remove. Furniture test.
-  // globals.scene.onKeyboardObservable.add((e) => {
-  //   if (e.event.type === "keydown" && e.event.key.toLowerCase() === "f") {
-  //     // Add bear furniture at a random position and rotation.
-  //     const position = new BABYLON.Vector3(
-  //       -10 + 20 * Math.random(),
-  //       0.5,
-  //       -10 + 20 * Math.random()
-  //     );
-  //     const rotation = new BABYLON.Vector3(0, 2 * Math.PI * Math.random(), 0);
-  //     room.furnitures.addBoring(position, rotation, "black_bear.gltf");
-  //   }
-  // });
-
-  // Keep-alive for Heroku server.
-  setInterval(() => {
-    send({ type: "ping" });
-  }, 30000);
-
   // Chrome wants you to resume AudioContext's after the user "interacts with the page".
-  window.addEventListener(
-    "click",
-    async () => {
-      console.log("Resuming global AudioContext...");
-      try {
-        await globals.audioContext.resume();
-        // globalAudioVideoElem.play();
-        console.log("  Resumed.");
-      } catch (err) {
-        console.log("  Failed to resume.");
-      }
-    },
-    { once: true }
+  async function resumeAudioContext() {
+    console.log("Resuming global AudioContext...");
+    try {
+      await globals.audioContext.resume();
+      console.log("  Resumed.");
+    } catch (err) {
+      console.log("  Failed to resume.");
+    }
+  }
+
+  window.addEventListener("click", resumeAudioContext, {
+    once: true,
+  });
+  globals.scene.onKeyboardObservable.add(
+    resumeAudioContext,
+    undefined,
+    undefined,
+    undefined,
+    true
   );
 })();

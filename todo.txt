@@ -1,0 +1,7 @@
+- randomize player starting positions/rotations (discussion circle?)
+- non-bear view of volume level? For 1st person mode.
+- remember name, color, position
+- focus on canvas after clicking toolbox
+- In theory, WebSocketServer should be doing own keepalive, but doesn't seem to be preventing Heroku close. See https://github.com/theturtle32/WebSocket-Node/blob/master/lib/WebSocketConnection.js
+For now, added manual ping every 30 sec; check this works.
+WebSocket: use browser built-in instead of ws package, in client? ws package seems just for node.

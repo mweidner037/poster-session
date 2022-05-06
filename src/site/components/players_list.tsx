@@ -2,6 +2,7 @@ import React from "react";
 import { Player } from "../state/player";
 import { PlayerSet } from "../state/player_set";
 import { PlayerInList } from "./player_in_list";
+import "./players_list.css";
 
 interface Props {
   players: PlayerSet;

@@ -1,0 +1,16 @@
+.playersList {
+  height: 100%;
+  overflow-x: auto;
+  margin: 0;
+  padding: 10pt;
+  box-sizing: border-box;
+
+  background-color: white;
+  border-style: solid;
+  border-width: 1pt;
+  border-radius: 5pt;
+
+  list-style: none;
+  font-size: 14pt;
+  font-weight: normal;
+}

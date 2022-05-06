@@ -1,0 +1,33 @@
+.toolbox {
+  min-width: 100%;
+  min-height: 100%;
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 10pt;
+  border-style: ridge;
+  background-color: lightgrey;
+}
+
+.toolSelect {
+  flex: 0 0 content;
+
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+
+  cursor: default;
+  user-select: none;
+}
+
+.toolSelectButton {
+  width: 30px;
+  height: 30px;
+  margin: 3px;
+
+  border-color: black;
+  border-radius: 3px;
+}

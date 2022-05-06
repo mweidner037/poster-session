@@ -21,6 +21,8 @@ export class BoringFurniture extends Furniture {
       this.mesh = mesh;
       if (this.disposed) this.mesh.dispose();
       else {
+        // Setup this.mesh.
+        this.mesh.setEnabled(true);
         this.state.position.syncTo(this.mesh.position);
         this.state.rotation.syncTo(this.mesh.rotation);
       }

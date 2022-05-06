@@ -33,6 +33,13 @@ export class MeshStore {
       const loadingResult = await loading;
       this.loadingByPath.delete(filePath);
       loaded = loadingResult.meshes;
+      for (const mesh of loaded) {
+        // Disable and remove extraneous transforms..
+        mesh.setEnabled(false);
+        mesh.parent = null;
+        mesh.rotationQuaternion = null;
+        mesh.scaling = new BABYLON.Vector3(1, 1, 1);
+      }
       this.loadedByPath.set(filePath, loaded);
     }
     if (index > loaded.length - 1) {

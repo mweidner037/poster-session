@@ -46,7 +46,6 @@ export class PlayerSet extends collabs.EventEmitter<PlayerSetEventsRecord> {
 
   private onAdd(playerState: PlayerState, eventMeta?: collabs.MessageMeta) {
     const displayMesh = <BABYLON.Mesh>this.meshTemplate.clone("bear", null)!;
-    displayMesh.setEnabled(true);
     const entity = new Player(
       playerState,
       displayMesh,

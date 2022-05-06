@@ -35,6 +35,7 @@ export class Player {
     displayMesh.parent = this.mesh;
     this.displayMeshMaterial = new BABYLON.StandardMaterial("bear_mat", scene);
     displayMesh.material = this.displayMeshMaterial;
+    displayMesh.setEnabled(true);
 
     // Setup namePlane and the DynamicTexture for writing on it.
     this.namePlane = BABYLON.MeshBuilder.CreatePlane(
