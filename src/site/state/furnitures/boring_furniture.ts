@@ -1,6 +1,6 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import { FurnitureState } from "../../../common/state";
-import { MyVector3 } from "../../../common/util/babylon_types";
+import { MyVector3 } from "../../../common/util";
 import { Furniture } from "../furniture";
 
 /**

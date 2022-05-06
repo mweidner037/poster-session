@@ -1,5 +1,5 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
-import { CAMERA_PERSPECTIVES } from "../run/handle_camera_perspective";
+import { CAMERA_PERSPECTIVES } from "./handle_camera_perspective";
 import { addTiledGround } from "./tiled_ground";
 
 export function createScene(

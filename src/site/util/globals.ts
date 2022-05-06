@@ -1,5 +1,5 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
-import { KeyTracker } from "../run/key_tracker";
+import { KeyTracker } from "../scene/key_tracker";
 import { MeshStore } from "../scene/mesh_store";
 
 export interface Globals {

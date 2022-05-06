@@ -1,5 +1,5 @@
 import * as collabs from "@collabs/collabs";
-import { MyVector3 } from "../util/babylon_types";
+import { MyVector3 } from "../util";
 
 export class FurnitureState extends collabs.CObject {
   constructor(

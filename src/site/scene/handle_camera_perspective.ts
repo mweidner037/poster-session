@@ -1,5 +1,5 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
-import { Globals } from "../util/globals";
+import { Globals } from "../util";
 
 export const CAMERA_PERSPECTIVES = [
   // First person

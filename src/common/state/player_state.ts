@@ -1,5 +1,5 @@
 import * as collabs from "@collabs/collabs";
-import { MyVector3 } from "../util/babylon_types";
+import { MyVector3 } from "../util";
 import { SerialCRegister } from "./serial_register";
 
 export class PlayerState extends collabs.CObject {

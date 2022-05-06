@@ -1,30 +1,29 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
-import { RoomState, SerialRuntime } from "../common/state";
 import * as collabs from "@collabs/collabs";
 import ReconnectingWebSocket from "reconnecting-websocket";
-import { MyVector3 } from "../common/util/babylon_types";
-import { WebSocketMessage } from "../common/util/web_socket_message";
+import React from "react";
+import ReactDOM from "react-dom";
 import Peer from "peerjs";
+import { RoomState, SerialRuntime } from "../common/state";
+import { MyVector3, WebSocketMessage } from "../common/util";
 import {
   getAudioInput,
   peerIDFromString,
   PeerJSManager,
   PlayerAudio,
+  setupAudioContext,
 } from "./calling";
-import { createScene } from "./scene/create_scene";
-import React from "react";
-import ReactDOM from "react-dom";
-import { Globals, setGlobals } from "./util/globals";
-import { Room } from "./state";
 import {
-  handleCameraPerspective,
-  handleColorInput,
-  handleNameInput,
+  createScene,
+  handlePlayerMovement,
+  MeshStore,
   KeyTracker,
+  handleCameraPerspective,
   runLogicLoop,
-} from "./run";
-import { handlePlayerMovement } from "./run/handle_player_movement";
-import { MeshStore } from "./scene/mesh_store";
+} from "./scene";
+import { Globals, setGlobals } from "./util";
+import { Room } from "./state";
+import { handleColorInput, handleNameInput } from "./run";
 import { PlayersList, Toolbox, ToolboxState } from "./components";
 
 (async function () {
@@ -104,6 +103,9 @@ import { PlayersList, Toolbox, ToolboxState } from "./components";
     audioContext,
   });
 
+  // Finish setting up audioContext now that Globals() is set.
+  setupAudioContext(audioContext);
+
   // Start getting player mesh.
   const bearMeshPromise = Globals().meshStore.getMesh("black_bear.gltf", 1);
 
@@ -136,13 +138,19 @@ import { PlayersList, Toolbox, ToolboxState } from "./components";
   );
   camera.parent = ourPlayer.mesh;
 
-  // Render list of players.
+  // Setup WebRTC. Do this synchronously with creating ourPlayer.
+  new PeerJSManager(peerServer, ourPlayer, room.players, ourAudioStream);
+
+  // -----------------------------------------------------
+  // Render React components.
+  // -----------------------------------------------------
+
   ReactDOM.render(
     <PlayersList players={room.players} ourPlayer={ourPlayer} />,
     document.getElementById("playersListRoot")
   );
 
-  // Render toolbox. TODO: only in editor mode.
+  // TODO: only shows this in editor mode.
   let toolboxState!: ToolboxState;
   ReactDOM.render(
     <Toolbox
@@ -189,44 +197,23 @@ import { PlayersList, Toolbox, ToolboxState } from "./components";
     }
   });
 
-  // Setup WebRTC. Do this synchronously with creating ourPlayer.
-  new PeerJSManager(peerServer, ourPlayer, room.players, ourAudioStream);
-
-  // -----------------------------------------------------
-  // Run app
-  // -----------------------------------------------------
-
-  // TODO: move into self-contained components.
+  // TODO: move into self-contained React component.
   handleNameInput(ourPlayer);
 
+  // TODO: move into self-contained React component.
   handleColorInput(ourPlayer);
+
+  // -----------------------------------------------------
+  // Run scene.
+  // -----------------------------------------------------
 
   handlePlayerMovement(ourPlayer, room.players);
 
   handleCameraPerspective(camera);
 
-  const ourPlayerAudio = new PlayerAudio(ourAudioStream, undefined, true);
-  runLogicLoop(ourPlayer, room.players, ourPlayerAudio);
-
-  // Chrome wants you to resume AudioContext's after the user "interacts with the page".
-  async function resumeAudioContext() {
-    console.log("Resuming global AudioContext...");
-    try {
-      await Globals().audioContext.resume();
-      console.log("  Resumed.");
-    } catch (err) {
-      console.log("  Failed to resume.");
-    }
-  }
-
-  window.addEventListener("click", resumeAudioContext, {
-    once: true,
-  });
-  Globals().scene.onKeyboardObservable.add(
-    resumeAudioContext,
-    undefined,
-    undefined,
-    undefined,
-    true
+  runLogicLoop(
+    ourPlayer,
+    room.players,
+    new PlayerAudio(ourAudioStream, undefined, true)
   );
 })();

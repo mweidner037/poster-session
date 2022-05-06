@@ -3,7 +3,7 @@ import { PlayerState, SerialMutCSet } from "../../common/state";
 import { MyVector3 } from "../../common/util/babylon_types";
 import { Player } from "./player";
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
-import { Globals } from "../util/globals";
+import { Globals } from "../util";
 
 export interface PlayerSetEventsRecord {
   Add: collabs.CSetEvent<Player>;

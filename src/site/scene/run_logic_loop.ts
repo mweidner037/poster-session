@@ -1,4 +1,4 @@
-import { MyVector3 } from "../../common/util/babylon_types";
+import { MyVector3 } from "../../common/util";
 import { PlayerAudio } from "../calling";
 import { HIGHLIGHT_THRESHOLD, Player } from "../state/player";
 import { PlayerSet } from "../state/player_set";

@@ -2,7 +2,7 @@
 // https://github.com/Meshiest/demo-proximity-voice/blob/f19b87893a9656c4f2b49523729cf698f3f9c086/public/app.js#L238
 // which is CC0-1.0 licensed.
 
-import { Globals } from "../util/globals";
+import { Globals } from "../util";
 
 /**
  * Manages audio coming from a different player.

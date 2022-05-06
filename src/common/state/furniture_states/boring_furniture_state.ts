@@ -1,5 +1,5 @@
 import * as collabs from "@collabs/collabs";
-import { MyVector3 } from "../../util/babylon_types";
+import { MyVector3 } from "../../util";
 import { FurnitureState } from "../furniture_state";
 
 export class BoringFurnitureState extends FurnitureState {

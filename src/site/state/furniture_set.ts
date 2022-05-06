@@ -1,6 +1,6 @@
 import { FurnitureState, SerialMutCSet, ToArgs } from "../../common/state";
-import { MyVector3 } from "../../common/util/babylon_types";
-import { Globals } from "../util/globals";
+import { MyVector3 } from "../../common/util";
+import { Globals } from "../util";
 import { BoringFurniture } from "./furnitures";
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import {

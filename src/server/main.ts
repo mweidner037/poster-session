@@ -5,7 +5,7 @@ import https = require("https");
 import fs = require("fs");
 import WebSocket = require("ws");
 import { PlayerState, RoomState, SerialRuntime } from "../common/state";
-import { WebSocketMessage } from "../common/util/web_socket_message";
+import { WebSocketMessage } from "../common/util";
 import * as collabs from "@collabs/collabs";
 
 const app = express();

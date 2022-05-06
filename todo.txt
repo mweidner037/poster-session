@@ -1,5 +1,11 @@
+- globals: omit scene, since externally mutable? To make clear who ends up manipulating out (pass down props style). Then describe Globals() as externally immutable-ish global resources.
+- createScene: just create the bare bones; have later function that sets up objects in scene and scene-specific input handlers (analogous to "Scene" React component). Then can create scene before creating audio context, allowing us to pass it as an argument to a general createAudioContext function.
+- Finish removing run... files, by making the remaining ones into React components that just take the appropriate Collab as input.
+- Generic React superclass that wraps an EventEmitter, for ease of wrapping Collabs state?
+- Replace PeerJS server with own. For now, since not using Heroku anyway, just have it run on a different port.
+- Move toolbox effects into toolbox (specifically, into tools).
 - randomize player starting positions/rotations (discussion circle?)
-- non-bear view of volume level? For 1st person mode.
+- non-bear view of own volume level? For 1st person mode.
 - remember name, color, position
 - focus on canvas after clicking toolbox
 - In theory, WebSocketServer should be doing own keepalive, but doesn't seem to be preventing Heroku close. See https://github.com/theturtle32/WebSocket-Node/blob/master/lib/WebSocketConnection.js

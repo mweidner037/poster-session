@@ -6,7 +6,7 @@ import {
 } from "../../common/consts";
 import { calcVolumes } from "../calling/calc_volumes";
 import { PeerJSConnection } from "../calling";
-import { MyVector3 } from "../../common/util/babylon_types";
+import { MyVector3 } from "../../common/util";
 
 const NAME_WIDTH = 2;
 const NAME_HEIGHT = 0.3;
@@ -131,7 +131,7 @@ export class Player {
   }
 
   /**
-   * Only called on non-player entities.
+   * Only called on other players.
    */
   bigTick(ourPlayer: Player): void {
     // Update volume levels by distance and angle.
@@ -144,7 +144,8 @@ export class Player {
           ourPlayer.mesh.rotation
         )
       );
-      // TODO: also do highlights for ourPlayer.
+      // Highlighting on our own player is done in runLogicLoop directly,
+      // not here (bigTick is only called for other players).
       this.setHighlighted(
         this.audioConn.audio.getLevel() > HIGHLIGHT_THRESHOLD
       );

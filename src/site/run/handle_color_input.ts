@@ -1,5 +1,5 @@
 import { Player } from "../state/player";
-import { Globals } from "../util/globals";
+import { Globals } from "../util";
 
 export function handleColorInput(ourPlayer: Player) {
   const canvas = <HTMLCanvasElement>document.getElementById("colorInput");

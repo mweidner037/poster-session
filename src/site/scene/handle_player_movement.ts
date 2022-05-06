@@ -1,7 +1,7 @@
 import { ROTATION_SPEED, TRANSLATION_SPEED } from "../../common/consts";
 import { Player } from "../state/player";
 import { PlayerSet } from "../state/player_set";
-import { Globals } from "../util/globals";
+import { Globals } from "../util";
 
 export function handlePlayerMovement(ourPlayer: Player, players: PlayerSet) {
   // Render loop. Note we do our own movements here,

@@ -1,5 +1,5 @@
 import { Player } from "../state/player";
-import { Globals } from "../util/globals";
+import { Globals } from "../util";
 
 export function handleNameInput(ourPlayer: Player) {
   const nameInput = <HTMLInputElement>document.getElementById("nameInput");
