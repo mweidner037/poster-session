@@ -37,15 +37,13 @@ export class FurnitureSet {
         "furnitures/" + furnitureState.mesh,
         1
       );
-      const meshCopyPromise = meshTemplatePromise.then((meshTemplate) => {
-        const meshCopy = <BABYLON.Mesh>meshTemplate.clone("mesh", null)!;
-        meshCopy.setEnabled(true);
-        return meshCopy;
-      });
+      const meshCopyPromise = meshTemplatePromise.then(
+        (meshTemplate) => <BABYLON.Mesh>meshTemplate.clone("mesh", null)!
+      );
       furniture = new BoringFurniture(furnitureState, meshCopyPromise);
     } else {
       throw new Error(
-        "Unknown furnitureState type: " + furnitureState.constructor.name
+        "Unknown furnitureState class: " + furnitureState.constructor.name
       );
     }
 

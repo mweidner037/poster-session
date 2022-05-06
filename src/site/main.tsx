@@ -121,11 +121,7 @@ import { PlayersList, Toolbox, ToolboxState } from "./components";
   ]);
 
   // Finish setting up player mesh and create room.
-  bearMesh.setEnabled(false); // This is a reference copy, not shown.
-  bearMesh.parent = null; // Clear rotation due to parent
-  bearMesh.rotationQuaternion = null; // Ensure .rotation works
   bearMesh.rotation = new BABYLON.Vector3(-Math.PI / 2, Math.PI, 0);
-
   const room = new Room(roomState, bearMesh);
 
   // Create our player's entity and attach the camera.
@@ -200,6 +196,7 @@ import { PlayersList, Toolbox, ToolboxState } from "./components";
   // Run app
   // -----------------------------------------------------
 
+  // TODO: move into self-contained components.
   handleNameInput(ourPlayer);
 
   handleColorInput(ourPlayer);
