@@ -1,4 +1,5 @@
 export * from "./furnitures";
+export * from "./furniture_state";
 export * from "./player_state";
 export * from "./room_state";
 export * from "./serial_mut_set";

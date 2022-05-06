@@ -1,8 +1,12 @@
-import { FurnitureState, SerialMutCSet } from "../../common/state";
+import { FurnitureState, SerialMutCSet, ToArgs } from "../../common/state";
 import { MyVector3 } from "../../common/util/babylon_types";
 import { Globals } from "../util/globals";
 import { BoringFurniture, Furniture } from "./furnitures";
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
+import {
+  BoringFurnitureState,
+  FurnitureStateClasses,
+} from "../../common/state/furnitures";
 
 export class FurnitureSet {
   private readonly furnituresByState = new Map<FurnitureState, Furniture>();
@@ -14,12 +18,7 @@ export class FurnitureSet {
   constructor(
     readonly state: SerialMutCSet<
       FurnitureState,
-      [
-        position: MyVector3,
-        rotation: MyVector3,
-        type: string,
-        ...otherArgs: unknown[]
-      ]
+      ToArgs<keyof typeof FurnitureStateClasses>
     >,
     readonly globals: Globals
   ) {
@@ -33,11 +32,9 @@ export class FurnitureSet {
   private onAdd(furnitureState: FurnitureState) {
     let furniture: Furniture;
 
-    // TODO: cases for other kinds of furniture, with this as the
-    // default case.
-    {
+    if (furnitureState instanceof BoringFurnitureState) {
       const meshTemplatePromise = this.globals.meshStore.getMesh(
-        "furnitures/" + furnitureState.type,
+        "furnitures/" + furnitureState.mesh,
         1
       );
       const meshCopyPromise = meshTemplatePromise.then((meshTemplate) => {
@@ -49,6 +46,10 @@ export class FurnitureSet {
         furnitureState,
         meshCopyPromise,
         this.globals
+      );
+    } else {
+      throw new Error(
+        "Unknown furnitureState type: " + furnitureState.constructor.name
       );
     }
 
@@ -64,9 +65,14 @@ export class FurnitureSet {
   addBoring(
     position: BABYLON.Vector3,
     rotation: BABYLON.Vector3,
-    type: string
+    mesh: string
   ) {
-    this.state.add(MyVector3.from(position), MyVector3.from(rotation), type);
+    this.state.add(
+      "boring",
+      MyVector3.from(position),
+      MyVector3.from(rotation),
+      mesh
+    );
   }
 
   delete(furniture: Furniture) {

@@ -133,8 +133,8 @@ import { PlayersList, Toolbox, ToolboxState } from "./components";
   const randomHue = 2 * Math.floor(Math.random() * 181);
   const ourPlayer = room.players.add(
     peerID,
-    new MyVector3(0, 0.5, 0),
-    new MyVector3(0, 0, 0),
+    MyVector3.new(0, 0.5, 0),
+    MyVector3.new(0, 0, 0),
     nameInput.value,
     randomHue
   );

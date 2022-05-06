@@ -1,6 +1,5 @@
 import * as collabs from "@collabs/collabs";
 import { MyVector3 } from "../util/babylon_types";
-import { MyVector3Serializer } from "../util/serialization";
 import { SerialCRegister } from "./serial_register";
 
 export class PlayerState extends collabs.CObject {
@@ -22,19 +21,11 @@ export class PlayerState extends collabs.CObject {
 
     this.position = this.addChild(
       "p",
-      collabs.Pre(SerialCRegister)(
-        initialPosition,
-        "local",
-        MyVector3Serializer.instance
-      )
+      collabs.Pre(SerialCRegister)(initialPosition, "local")
     );
     this.rotation = this.addChild(
       "r",
-      collabs.Pre(SerialCRegister)(
-        initialRotation,
-        "local",
-        MyVector3Serializer.instance
-      )
+      collabs.Pre(SerialCRegister)(initialRotation, "local")
     );
     this.displayName = this.addChild(
       "displayName",

@@ -1,9 +1,19 @@
 import * as collabs from "@collabs/collabs";
 import { MyVector3 } from "../util/babylon_types";
-import { PositionRotationOtherSerializer } from "../util/serialization";
-import { FurnitureState } from "./furnitures";
+import { ConstructorParametersMinusInitToken } from "../util/types";
+import { FurnitureStateClasses } from "./furnitures";
+import { FurnitureState } from "./furniture_state";
 import { PlayerState } from "./player_state";
 import { SerialMutCSet } from "./serial_mut_set";
+
+export type ToArgs<K> = K extends keyof typeof FurnitureStateClasses
+  ? [
+      type: K,
+      ...args: ConstructorParametersMinusInitToken<
+        typeof FurnitureStateClasses[K]
+      >
+    ]
+  : never;
 
 export class RoomState extends collabs.CObject {
   readonly players: SerialMutCSet<
@@ -19,12 +29,7 @@ export class RoomState extends collabs.CObject {
 
   readonly furniture: SerialMutCSet<
     FurnitureState,
-    [
-      position: MyVector3,
-      rotation: MyVector3,
-      type: string,
-      ...otherArgs: unknown[]
-    ]
+    ToArgs<keyof typeof FurnitureStateClasses>
   >;
 
   constructor(initToken: collabs.InitToken) {
@@ -34,29 +39,14 @@ export class RoomState extends collabs.CObject {
       "p",
       collabs.Pre(SerialMutCSet)(
         collabs.ConstructorAsFunction(PlayerState),
-        "local",
-        new PositionRotationOtherSerializer()
+        "local"
       )
     );
     this.furniture = this.addChild(
       "f",
-      collabs.Pre(SerialMutCSet)(
-        (valueInitToken, position, rotation, type, ...otherArgs) => {
-          switch (type) {
-            // TODO: cases for other types of furniture.
-            default:
-              // Boring furniture (no activity).
-              return new FurnitureState(
-                valueInitToken,
-                position,
-                rotation,
-                type
-              );
-          }
-        },
-        "remote",
-        new PositionRotationOtherSerializer()
-      )
+      collabs.Pre(SerialMutCSet)((valueInitToken, type, ...args) => {
+        return new FurnitureStateClasses[type](valueInitToken, ...args);
+      }, "remote")
     );
   }
 }

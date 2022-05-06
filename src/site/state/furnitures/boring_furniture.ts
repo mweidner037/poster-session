@@ -1,5 +1,6 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import { FurnitureState } from "../../../common/state";
+import { MyVector3 } from "../../../common/util/babylon_types";
 import { Globals } from "../../util/globals";
 import { Furniture } from "./furniture";
 
@@ -23,8 +24,8 @@ export class BoringFurniture extends Furniture {
       else {
         // Setup this.mesh.
         this.mesh.setEnabled(true);
-        this.state.position.syncTo(this.mesh.position);
-        this.state.rotation.syncTo(this.mesh.rotation);
+        MyVector3.syncTo(this.state.position, this.mesh.position);
+        MyVector3.syncTo(this.state.rotation, this.mesh.rotation);
       }
     });
   }

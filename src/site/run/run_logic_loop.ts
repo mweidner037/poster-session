@@ -11,12 +11,12 @@ export function runLogicLoop(
   setInterval(() => {
     // Send actual position/rotation to the server.
     if (
-      !ourPlayer.state.position.value.equalsBabylon(ourPlayer.mesh.position)
+      !MyVector3.equals(ourPlayer.state.position.value, ourPlayer.mesh.position)
     ) {
       ourPlayer.state.position.value = MyVector3.from(ourPlayer.mesh.position);
     }
     if (
-      !ourPlayer.state.rotation.value.equalsBabylon(ourPlayer.mesh.rotation)
+      !MyVector3.equals(ourPlayer.state.rotation.value, ourPlayer.mesh.rotation)
     ) {
       ourPlayer.state.rotation.value = MyVector3.from(ourPlayer.mesh.rotation);
     }

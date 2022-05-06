@@ -6,6 +6,7 @@ import {
 } from "../../common/consts";
 import { calcVolumes } from "../calling/calc_volumes";
 import { PeerJSConnection } from "../calling";
+import { MyVector3 } from "../../common/util/babylon_types";
 
 const NAME_WIDTH = 2;
 const NAME_HEIGHT = 0.3;
@@ -64,8 +65,8 @@ export class Player {
     this.namePlane.material = namePlaneMaterial;
 
     // Display initial values.
-    this.state.position.value.syncTo(this.mesh.position);
-    this.state.rotation.value.syncTo(this.mesh.rotation);
+    MyVector3.syncTo(this.state.position.value, this.mesh.position);
+    MyVector3.syncTo(this.state.rotation.value, this.mesh.rotation);
     this.onHueSet();
     // this.onDisplayNameSet(); // Called by onHueSet.
 
@@ -115,12 +116,14 @@ export class Player {
   littleTick(deltaSec: number): void {
     // Move this.mesh towards the intended state at
     // a bounded speed.
-    this.state.position.value.moveToThis(
+    MyVector3.moveTowards(
+      this.state.position.value,
       this.mesh.position,
       TRANSLATION_FOLLOW_SPEED,
       deltaSec
     );
-    this.state.rotation.value.moveToThis(
+    MyVector3.moveTowards(
+      this.state.rotation.value,
       this.mesh.rotation,
       ROTATION_FOLLOW_SPEED,
       deltaSec
