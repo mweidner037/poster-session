@@ -68,25 +68,23 @@ import { connectToServer } from "./net";
     audioContext,
   });
 
-  // Start getting player mesh.
-  const bearMeshPromise = Globals().meshStore.getMesh("black_bear.gltf", 1);
+  // Start loading important meshes. Also clean some of them.
+  Globals()
+    .meshStore.getMesh("black_bear.gltf", 1)
+    .then((mesh) => {
+      mesh.rotation = new BABYLON.Vector3(-Math.PI / 2, Math.PI, 0);
+    });
 
   // Wait for various things that need to happen before
   // we can create ourPlayer:
   // - PeerJS server connects.
-  // - Player mesh loads.
   // - Collabs state loads. (Note that further messages might
   // also be received by now.)
   // TODO: audio-less fallback for if PeerJS server fails to connect?
-  const [bearMesh] = await Promise.all([
-    bearMeshPromise,
-    peerServerOpenPromise,
-    replica.nextEvent("Load"),
-  ]);
+  await Promise.all([peerServerOpenPromise, replica.nextEvent("Load")]);
 
   // Finish setting up player mesh and create room.
-  bearMesh.rotation = new BABYLON.Vector3(-Math.PI / 2, Math.PI, 0);
-  const room = new Room(roomState, scene, highlightLayer, bearMesh);
+  const room = new Room(roomState, scene, highlightLayer);
 
   // Create our player's entity and attach the camera.
   const randomHue = 2 * Math.floor(Math.random() * 181);

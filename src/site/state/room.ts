@@ -10,15 +10,9 @@ export class Room {
   constructor(
     readonly state: RoomState,
     scene: BABYLON.Scene,
-    highlightLayer: BABYLON.HighlightLayer,
-    playerMesh: BABYLON.AbstractMesh
+    highlightLayer: BABYLON.HighlightLayer
   ) {
-    this.players = new PlayerSet(
-      state.players,
-      scene,
-      highlightLayer,
-      playerMesh
-    );
+    this.players = new PlayerSet(state.players, scene, highlightLayer);
     this.furnitures = new FurnitureSet(state.furniture);
   }
 }

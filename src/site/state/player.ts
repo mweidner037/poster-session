@@ -7,7 +7,9 @@ import {
 import { calcVolumes } from "../calling/calc_volumes";
 import { PeerJSConnection } from "../calling";
 import { MyVector3 } from "../../common/util";
+import { Globals } from "../util";
 
+const DEFAULT_PLAYER_MESH: [string, number] = ["black_bear.gltf", 1];
 const NAME_WIDTH = 2;
 const NAME_HEIGHT = 0.3;
 const NAME_POSITION = new BABYLON.Vector3(0, 1.5, 0);
@@ -19,7 +21,10 @@ export const HIGHLIGHT_THRESHOLD = 70;
 
 export class Player {
   readonly mesh: BABYLON.AbstractMesh;
-  private readonly displayMeshMaterial: BABYLON.StandardMaterial;
+  /** Treat as readonly. null until loaded. */
+  private displayMesh: BABYLON.Mesh | null = null;
+  /** Treat as readonly. null until displayMesh is loaded. */
+  private displayMeshMaterial: BABYLON.StandardMaterial | null = null;
   private readonly namePlane: BABYLON.Mesh;
   private readonly namePlaneDT: BABYLON.DynamicTexture;
   audioConn: PeerJSConnection | null = null;
@@ -27,16 +32,26 @@ export class Player {
   constructor(
     readonly state: PlayerState,
     scene: BABYLON.Scene,
-    private readonly highlightLayer: BABYLON.HighlightLayer,
-    private readonly displayMesh: BABYLON.Mesh
+    private readonly highlightLayer: BABYLON.HighlightLayer
   ) {
     this.mesh = new BABYLON.AbstractMesh("mesh");
 
     // Setup displayMesh.
-    displayMesh.parent = this.mesh;
-    this.displayMeshMaterial = new BABYLON.StandardMaterial("bear_mat", scene);
-    displayMesh.material = this.displayMeshMaterial;
-    displayMesh.setEnabled(true);
+    Globals()
+      .meshStore.getMesh(...DEFAULT_PLAYER_MESH)
+      .then((meshTemplate) => {
+        this.displayMesh = <BABYLON.Mesh>meshTemplate.clone("bear", null)!;
+        this.displayMesh.parent = this.mesh;
+        this.displayMeshMaterial = new BABYLON.StandardMaterial(
+          "player_mat",
+          scene
+        );
+        this.displayMesh.material = this.displayMeshMaterial;
+        this.displayMesh.setEnabled(true);
+        // Apply changes that should have affected displayMesh but were
+        // stopped because it was null.
+        this.onHueSet(); // Also sets highlighting if needed.
+      });
 
     // Setup namePlane and the DynamicTexture for writing on it.
     this.namePlane = BABYLON.MeshBuilder.CreatePlane(
@@ -67,8 +82,7 @@ export class Player {
     // Display initial values.
     MyVector3.syncTo(this.state.position.value, this.mesh.position);
     MyVector3.syncTo(this.state.rotation.value, this.mesh.rotation);
-    this.onHueSet();
-    // this.onDisplayNameSet(); // Called by onHueSet.
+    this.onHueSet(); // Also calls onDisplayNameSet.
 
     // Sync state to values, except those set during ticks.
     this.state.hue.on("Set", () => this.onHueSet());
@@ -76,12 +90,14 @@ export class Player {
   }
 
   private onHueSet() {
-    BABYLON.Color3.HSVtoRGBToRef(
-      this.state.hue.value,
-      1,
-      0.5,
-      this.displayMeshMaterial.diffuseColor
-    );
+    if (this.displayMeshMaterial !== null) {
+      BABYLON.Color3.HSVtoRGBToRef(
+        this.state.hue.value,
+        1,
+        0.5,
+        this.displayMeshMaterial.diffuseColor
+      );
+    }
     this.onDisplayNameSet();
     if (this.isHighlighted) {
       // Update the highlight color.
@@ -157,16 +173,18 @@ export class Player {
 
   setHighlighted(highlight: boolean) {
     if (highlight !== this.isHighlighted) {
-      if (highlight) {
-        BABYLON.Color3.HSVtoRGBToRef(
-          this.state.hue.value,
-          0.5,
-          0.5,
-          this.colorForHighlight
-        );
-        this.highlightLayer.addMesh(this.displayMesh, this.colorForHighlight);
-      } else {
-        this.highlightLayer.removeMesh(this.displayMesh);
+      if (this.displayMesh !== null) {
+        if (highlight) {
+          BABYLON.Color3.HSVtoRGBToRef(
+            this.state.hue.value,
+            0.5,
+            0.5,
+            this.colorForHighlight
+          );
+          this.highlightLayer.addMesh(this.displayMesh, this.colorForHighlight);
+        } else {
+          this.highlightLayer.removeMesh(this.displayMesh);
+        }
       }
       this.isHighlighted = highlight;
     }

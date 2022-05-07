@@ -32,8 +32,7 @@ export class PlayerSet extends collabs.EventEmitter<PlayerSetEventsRecord> {
       ]
     >,
     private readonly scene: BABYLON.Scene,
-    private readonly highlightLayer: BABYLON.HighlightLayer,
-    private readonly meshTemplate: BABYLON.AbstractMesh
+    private readonly highlightLayer: BABYLON.HighlightLayer
   ) {
     super();
 
@@ -45,13 +44,7 @@ export class PlayerSet extends collabs.EventEmitter<PlayerSetEventsRecord> {
   }
 
   private onAdd(playerState: PlayerState, eventMeta?: collabs.MessageMeta) {
-    const displayMesh = <BABYLON.Mesh>this.meshTemplate.clone("bear", null)!;
-    const entity = new Player(
-      playerState,
-      this.scene,
-      this.highlightLayer,
-      displayMesh
-    );
+    const entity = new Player(playerState, this.scene, this.highlightLayer);
     this.playersByState.set(playerState, entity);
 
     playerState.displayName.on("Set", () => this.emit("NameSetChange", {}));
