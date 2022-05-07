@@ -1,0 +1,19 @@
+.rightTopDiv {
+  flex: 0 0 content;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.controlsText {
+  font-size: 14pt;
+  font-weight: normal;
+}
+
+.playersListDiv {
+  flex: 1 0 100pt;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  padding: 0;
+  margin: 0;
+}

@@ -9,7 +9,7 @@ interface Props {
   ourPlayer: Player;
 }
 
-export class PlayersList extends React.Component<Props, {}> {
+export class PlayersList extends React.Component<Props> {
   private removeCollabListeners: (() => void) | null = null;
 
   componentDidMount() {

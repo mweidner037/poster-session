@@ -6,7 +6,7 @@ interface Props {
   player: Player;
 }
 
-export class PlayerInList extends React.Component<Props, {}> {
+export class PlayerInList extends React.Component<Props> {
   private removeCollabListeners: (() => void) | null = null;
 
   componentDidMount() {

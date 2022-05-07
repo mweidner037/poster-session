@@ -23,8 +23,7 @@ import {
 } from "./scene";
 import { Globals, setGlobals } from "./util";
 import { Room } from "./state";
-import { handleColorInput, handleNameInput } from "./run";
-import { PlayersList, Toolbox, ToolboxState } from "./components";
+import { RightPanel, Toolbox, ToolboxState } from "./components";
 
 (async function () {
   // -----------------------------------------------------
@@ -127,13 +126,12 @@ import { PlayersList, Toolbox, ToolboxState } from "./components";
   const room = new Room(roomState, bearMesh);
 
   // Create our player's entity and attach the camera.
-  const nameInput = document.getElementById("nameInput") as HTMLInputElement;
   const randomHue = 2 * Math.floor(Math.random() * 181);
   const ourPlayer = room.players.add(
     peerID,
     MyVector3.new(0, 0.5, 0),
     MyVector3.new(0, 0, 0),
-    nameInput.value,
+    "Bear " + Math.floor(Math.random() * 10000),
     randomHue
   );
   camera.parent = ourPlayer.mesh;
@@ -146,8 +144,8 @@ import { PlayersList, Toolbox, ToolboxState } from "./components";
   // -----------------------------------------------------
 
   ReactDOM.render(
-    <PlayersList players={room.players} ourPlayer={ourPlayer} />,
-    document.getElementById("playersListRoot")
+    <RightPanel players={room.players} ourPlayer={ourPlayer} />,
+    document.getElementById("rightPanelRoot")
   );
 
   // TODO: only shows this in editor mode.
@@ -196,12 +194,6 @@ import { PlayersList, Toolbox, ToolboxState } from "./components";
       }
     }
   });
-
-  // TODO: move into self-contained React component.
-  handleNameInput(ourPlayer);
-
-  // TODO: move into self-contained React component.
-  handleColorInput(ourPlayer);
 
   // -----------------------------------------------------
   // Run scene.
