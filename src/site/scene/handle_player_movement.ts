@@ -1,14 +1,19 @@
+import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import { ROTATION_SPEED, TRANSLATION_SPEED } from "../../common/consts";
 import { Player } from "../state/player";
 import { PlayerSet } from "../state/player_set";
 import { Globals } from "../util";
 
-export function handlePlayerMovement(ourPlayer: Player, players: PlayerSet) {
+export function handlePlayerMovement(
+  ourPlayer: Player,
+  players: PlayerSet,
+  scene: BABYLON.Scene
+) {
   // Render loop. Note we do our own movements here,
   // but only update the server in the logic loop below.
   // This is okay because Player doesn't sync local changes.
   let lastTime = -1;
-  Globals().scene.onBeforeRenderObservable.add(() => {
+  scene.onBeforeRenderObservable.add(() => {
     if (lastTime === -1) {
       lastTime = Date.now();
       return;

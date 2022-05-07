@@ -1,72 +1,34 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import * as collabs from "@collabs/collabs";
-import ReconnectingWebSocket from "reconnecting-websocket";
 import React from "react";
 import ReactDOM from "react-dom";
 import Peer from "peerjs";
 import { RoomState, SerialRuntime } from "../common/state";
-import { MyVector3, WebSocketMessage } from "../common/util";
+import { MyVector3 } from "../common/util";
 import {
+  createAudioContext,
   getAudioInput,
   peerIDFromString,
   PeerJSManager,
   PlayerAudio,
-  setupAudioContext,
 } from "./calling";
-import {
-  createScene,
-  handlePlayerMovement,
-  MeshStore,
-  KeyTracker,
-  handleCameraPerspective,
-  runLogicLoop,
-} from "./scene";
+import { createScene, MeshStore, KeyTracker, setupScene } from "./scene";
 import { Globals, setGlobals } from "./util";
 import { Room } from "./state";
 import { RightPanel, Toolbox, ToolboxState } from "./components";
+import { connectToServer } from "./net";
 
 (async function () {
   // -----------------------------------------------------
   // Setup
   // -----------------------------------------------------
 
-  // Create replica.
+  // Create replica and connect it to the server (server/main.ts).
   const replica = new SerialRuntime({
     batchingStrategy: new collabs.RateLimitBatchingStrategy(100),
   });
   const roomState = replica.registerCollab("room", collabs.Pre(RoomState)());
-
-  // Connect to server.
-  // TODO: reconnecting helps us on open, but there will still
-  // be problems if the connection is closed (will miss messages).
-  const ws = new ReconnectingWebSocket(location.origin.replace(/^http/, "ws"));
-  function send(message: WebSocketMessage) {
-    ws.send(JSON.stringify(message));
-  }
-  send({ type: "id", replicaId: replica.replicaID });
-  replica.on("Send", (e) => {
-    send({ type: "msg", msg: e.message });
-  });
-
-  ws.addEventListener("message", (e) => {
-    const message = JSON.parse(e.data) as WebSocketMessage;
-    if (message.type === "load") {
-      if (replica.isLoaded) {
-        // TODO: if this happens, it means our connection dropped
-        // temporarily. Need to back-fill missed data.
-        return;
-      }
-      replica.load(
-        collabs.Optional.of(collabs.stringAsBytes(message.saveData))
-      );
-    } else if (message.type === "msg") {
-      replica.receive(message.msg);
-    }
-  });
-
-  // Get audio input. Do it now to start requesting user audio permission.
-  const audioContext = new AudioContext();
-  const ourAudioStream = getAudioInput(audioContext);
+  connectToServer(replica);
 
   // Start connecting to PeerJS server.
   // TODO: IRL we would need our own PeerJS server, STUN server,
@@ -93,17 +55,18 @@ import { RightPanel, Toolbox, ToolboxState } from "./components";
   ) as HTMLCanvasElement;
   const [scene, camera, highlightLayer] = createScene(renderCanvas);
 
+  // Get audio input. Do it now to start requesting user audio permission.
+  const audioContext = createAudioContext(scene);
+  const ourAudioStream = getAudioInput(audioContext);
+
+  // Store Globals().
   setGlobals({
     renderCanvas,
-    scene,
     highlightLayer,
     meshStore: new MeshStore(scene),
     keyTracker: new KeyTracker(scene),
     audioContext,
   });
-
-  // Finish setting up audioContext now that Globals() is set.
-  setupAudioContext(audioContext);
 
   // Start getting player mesh.
   const bearMeshPromise = Globals().meshStore.getMesh("black_bear.gltf", 1);
@@ -123,7 +86,7 @@ import { RightPanel, Toolbox, ToolboxState } from "./components";
 
   // Finish setting up player mesh and create room.
   bearMesh.rotation = new BABYLON.Vector3(-Math.PI / 2, Math.PI, 0);
-  const room = new Room(roomState, bearMesh);
+  const room = new Room(roomState, scene, highlightLayer, bearMesh);
 
   // Create our player's entity and attach the camera.
   const randomHue = 2 * Math.floor(Math.random() * 181);
@@ -136,18 +99,20 @@ import { RightPanel, Toolbox, ToolboxState } from "./components";
   );
   camera.parent = ourPlayer.mesh;
 
-  // Setup WebRTC. Do this synchronously with creating ourPlayer.
+  // Setup WebRTC. Need to do this synchronously with creating ourPlayer.
   new PeerJSManager(peerServer, ourPlayer, room.players, ourAudioStream);
 
   // -----------------------------------------------------
-  // Render React components.
+  // Create components.
   // -----------------------------------------------------
 
+  // Right panel.
   ReactDOM.render(
     <RightPanel players={room.players} ourPlayer={ourPlayer} />,
     document.getElementById("rightPanelRoot")
   );
 
+  // Toolbox (left panel).
   // TODO: only shows this in editor mode.
   let toolboxState!: ToolboxState;
   ReactDOM.render(
@@ -195,17 +160,12 @@ import { RightPanel, Toolbox, ToolboxState } from "./components";
     }
   });
 
-  // -----------------------------------------------------
-  // Run scene.
-  // -----------------------------------------------------
-
-  handlePlayerMovement(ourPlayer, room.players);
-
-  handleCameraPerspective(camera);
-
-  runLogicLoop(
+  // Scene (center).
+  setupScene(
+    scene,
+    camera,
     ourPlayer,
-    room.players,
+    room,
     new PlayerAudio(ourAudioStream, undefined, true)
   );
 })();

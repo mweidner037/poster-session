@@ -7,8 +7,18 @@ export class Room {
   readonly players: PlayerSet;
   readonly furnitures: FurnitureSet;
 
-  constructor(readonly state: RoomState, playerMesh: BABYLON.AbstractMesh) {
-    this.players = new PlayerSet(state.players, playerMesh);
+  constructor(
+    readonly state: RoomState,
+    scene: BABYLON.Scene,
+    highlightLayer: BABYLON.HighlightLayer,
+    playerMesh: BABYLON.AbstractMesh
+  ) {
+    this.players = new PlayerSet(
+      state.players,
+      scene,
+      highlightLayer,
+      playerMesh
+    );
     this.furnitures = new FurnitureSet(state.furniture);
   }
 }

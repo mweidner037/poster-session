@@ -26,9 +26,9 @@ export class Player {
 
   constructor(
     readonly state: PlayerState,
-    private readonly displayMesh: BABYLON.Mesh,
+    scene: BABYLON.Scene,
     private readonly highlightLayer: BABYLON.HighlightLayer,
-    scene: BABYLON.Scene
+    private readonly displayMesh: BABYLON.Mesh
   ) {
     this.mesh = new BABYLON.AbstractMesh("mesh");
 

@@ -1,9 +1,7 @@
-import { Globals } from "../util";
+import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 
-/**
- * Must be called after Globals is set, so that we can access Globals().scene.
- */
-export function setupAudioContext(audioContext: AudioContext): void {
+export function createAudioContext(scene: BABYLON.Scene): AudioContext {
+  const audioContext = new AudioContext();
   // Chrome wants you to resume AudioContexts after the user
   // "interacts with the page".
   async function resumeAudioContext() {
@@ -19,11 +17,13 @@ export function setupAudioContext(audioContext: AudioContext): void {
   window.addEventListener("click", resumeAudioContext, {
     once: true,
   });
-  Globals().scene.onKeyboardObservable.add(
+  scene.onKeyboardObservable.add(
     resumeAudioContext,
     undefined,
     undefined,
     undefined,
     true
   );
+
+  return audioContext;
 }

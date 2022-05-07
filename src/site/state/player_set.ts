@@ -3,7 +3,6 @@ import { PlayerState, SerialMutCSet } from "../../common/state";
 import { MyVector3 } from "../../common/util/babylon_types";
 import { Player } from "./player";
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
-import { Globals } from "../util";
 
 export interface PlayerSetEventsRecord {
   Add: collabs.CSetEvent<Player>;
@@ -32,6 +31,8 @@ export class PlayerSet extends collabs.EventEmitter<PlayerSetEventsRecord> {
         hue: number
       ]
     >,
+    private readonly scene: BABYLON.Scene,
+    private readonly highlightLayer: BABYLON.HighlightLayer,
     private readonly meshTemplate: BABYLON.AbstractMesh
   ) {
     super();
@@ -47,9 +48,9 @@ export class PlayerSet extends collabs.EventEmitter<PlayerSetEventsRecord> {
     const displayMesh = <BABYLON.Mesh>this.meshTemplate.clone("bear", null)!;
     const entity = new Player(
       playerState,
-      displayMesh,
-      Globals().highlightLayer,
-      Globals().scene
+      this.scene,
+      this.highlightLayer,
+      displayMesh
     );
     this.playersByState.set(playerState, entity);
 

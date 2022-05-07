@@ -1,6 +1,5 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import { CAMERA_PERSPECTIVES } from "./handle_camera_perspective";
-import { addTiledGround } from "./tiled_ground";
 
 export function createScene(
   renderCanvas: HTMLCanvasElement
@@ -21,8 +20,6 @@ export function createScene(
   new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
 
   const highlightLayer = new BABYLON.HighlightLayer("highlight", scene);
-
-  addTiledGround(scene);
 
   // Register a render loop to repeatedly render the scene
   engine.runRenderLoop(function () {

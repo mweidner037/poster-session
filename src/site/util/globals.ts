@@ -4,7 +4,6 @@ import { MeshStore } from "../scene/mesh_store";
 
 export interface Globals {
   renderCanvas: HTMLCanvasElement;
-  scene: BABYLON.Scene;
   highlightLayer: BABYLON.HighlightLayer;
   meshStore: MeshStore;
   keyTracker: KeyTracker;
@@ -13,6 +12,14 @@ export interface Globals {
 
 let globalsVar: Globals | null = null;
 
+/**
+ * Returns a collection of some global objects---usually handles on system
+ * resources.
+ *
+ * Only objects that do not contain important parts of the mutable state
+ * are included; ones that do should be passed to their users directly,
+ * do make clear who can mutate what state.
+ */
 export function Globals(): Globals {
   if (globalsVar === null) {
     throw new Error(
