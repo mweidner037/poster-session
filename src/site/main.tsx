@@ -42,12 +42,6 @@ import { connectToServer } from "./net";
   const peerID = peerIDFromString(replica.replicaID);
   console.log("Our peer id: " + peerID);
   const peerServer = new Peer(peerID);
-  const peerServerOpenPromise = new Promise<void>((resolve) => {
-    peerServer.on("open", () => {
-      console.log("Peer server connected");
-      resolve();
-    });
-  });
 
   // Create scene.
   const renderCanvas = document.getElementById(
@@ -75,15 +69,12 @@ import { connectToServer } from "./net";
       mesh.rotation = new BABYLON.Vector3(-Math.PI / 2, Math.PI, 0);
     });
 
-  // Wait for various things that need to happen before
-  // we can create ourPlayer:
-  // - PeerJS server connects.
-  // - Collabs state loads. (Note that further messages might
-  // also be received by now.)
-  // TODO: audio-less fallback for if PeerJS server fails to connect?
-  await Promise.all([peerServerOpenPromise, replica.nextEvent("Load")]);
+  // Wait for Collabs state to load. We need to do this before creating
+  // room and ourPlayer, since room needs to see the loaded state,
+  // and ourPlayer modifies the Collabs state.
+  await replica.nextEvent("Load");
 
-  // Finish setting up player mesh and create room.
+  // Create room.
   const room = new Room(roomState, scene, highlightLayer);
 
   // Create our player's entity and attach the camera.
@@ -97,7 +88,7 @@ import { connectToServer } from "./net";
   );
   camera.parent = ourPlayer.mesh;
 
-  // Setup WebRTC. Need to do this synchronously with creating ourPlayer.
+  // Setup WebRTC.
   new PeerJSManager(peerServer, ourPlayer, room.players, ourAudioStream);
 
   // -----------------------------------------------------

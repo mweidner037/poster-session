@@ -8,6 +8,13 @@ export class PlayerState extends collabs.CObject {
   readonly displayName: SerialCRegister<string>;
   /** A number in [0, 360]. */
   readonly hue: SerialCRegister<number>;
+  /**
+   * Indicates whether this player has successfully connected to the PeerJS
+   * calling server, hence can be called.
+   *
+   * For now, this only goes from false to true.
+   */
+  readonly callReady: SerialCRegister<boolean>;
 
   constructor(
     initToken: collabs.InitToken,
@@ -34,6 +41,10 @@ export class PlayerState extends collabs.CObject {
     this.hue = this.addChild(
       "hue",
       collabs.Pre(SerialCRegister)(initialHue, "local")
+    );
+    this.callReady = this.addChild(
+      "callReady",
+      collabs.Pre(SerialCRegister)(false, "local")
     );
   }
 }

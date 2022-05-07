@@ -55,9 +55,6 @@ export class PeerJSManager {
     [call: Peer.MediaConnection, stream: MediaStream]
   >();
 
-  /**
-   * Must be constructed synchronously with creating ourPlayer.
-   */
   constructor(
     private readonly peer: Peer,
     private readonly ourPlayer: Player,
@@ -65,6 +62,11 @@ export class PeerJSManager {
     private readonly ourAudioStream: MediaStream
   ) {
     // Logging info.
+    this.peer.on("open", () => {
+      console.log("Peer server connected");
+      // Let other players know that we can be called.
+      this.ourPlayer.state.callReady.value = true;
+    });
     this.peer.on("disconnected", () => console.error("PeerJS disconnected"));
     this.peer.on("error", (err) => {
       console.log("PeerJS error:");
@@ -105,15 +107,24 @@ export class PeerJSManager {
       this.pendingReceivedStreams.delete(peerID);
       this.setAudioConn(player, ...pendingStream);
     } else {
-      // Call the new peer.
-      // TODO: Could skip this if the peer is initial value,
-      // letting them call us instead. That would avoid calling
-      // both ways in that case (although not in the case of
-      // concurrently added peers). However, it would also
-      // increase connection latency.
-      console.log("Calling peer " + peerID);
-      const call = this.peer.call(peerID, this.ourAudioStream);
-      this.handleCall(call);
+      // Call the new peer once they are ready.
+      // Note this.peer may not yet be open; in that case, the call is queued
+      // (according to API docs), so it should be okay.
+      const readyPromise = player.state.callReady.value
+        ? Promise.resolve()
+        : player.state.callReady.nextEvent("Set");
+      readyPromise.then(() => {
+        console.log("Calling peer " + peerID);
+        const call = this.peer.call(peerID, this.ourAudioStream);
+        if (call === undefined) {
+          console.log(
+            "  Calling failed: this.peer.call returned undefined " +
+              "(probably the server is disconnected)"
+          );
+          return;
+        }
+        this.handleCall(call);
+      });
     }
   }
 
