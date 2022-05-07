@@ -15,7 +15,7 @@ import {
 import { createScene, MeshStore, KeyTracker, setupScene } from "./scene";
 import { Globals, setGlobals } from "./util";
 import { Room } from "./state";
-import { RightPanel, Toolbox, ToolboxState } from "./components";
+import { RightPanel, Toolbox } from "./components";
 import { connectToServer } from "./net";
 
 (async function () {
@@ -102,54 +102,13 @@ import { connectToServer } from "./net";
   );
 
   // Toolbox (left panel).
-  // TODO: only shows this in editor mode.
-  let toolboxState!: ToolboxState;
+  // TODO: only show this in editor mode.
   ReactDOM.render(
-    <Toolbox
-      onChange={(state) => {
-        toolboxState = state;
-        scene.defaultCursor =
-          toolboxState.selected === "Mouse" ? "default" : "pointer";
-      }}
-    />,
+    <Toolbox scene={scene} room={room} />,
     document.getElementById("toolboxRoot")
   );
-  // TODO: only change mouse cursor when it's over a valid location?
-  scene.onPointerObservable.add((e) => {
-    if (e.type == BABYLON.PointerEventTypes.POINTERDOWN) {
-      if (e.pickInfo !== null && e.pickInfo.pickedMesh !== null) {
-        // Place furniture.
-        // TODO: only on ground, not on furniture
-        if (e.pickInfo.distance < 5 && toolboxState.selected !== "Mouse") {
-          // Determine rotation angle: face towards ray.
-          const angle = Math.atan2(
-            e.pickInfo.ray!.direction.x,
-            e.pickInfo.ray!.direction.z
-          );
-          const rotation = new BABYLON.Vector3(0, angle, 0);
-          // TODO: make tool do this
-          switch (toolboxState.selected) {
-            case "Bear":
-              room.furnitures.addBoring(
-                e.pickInfo.pickedPoint!,
-                rotation,
-                "black_bear.gltf"
-              );
-              break;
-            case "Easel":
-              room.furnitures.addBoring(
-                e.pickInfo.pickedPoint!,
-                rotation,
-                "easel.gltf"
-              );
-              break;
-          }
-        }
-      }
-    }
-  });
 
-  // Scene (center).
+  // Scene (center panel).
   setupScene(
     scene,
     camera,

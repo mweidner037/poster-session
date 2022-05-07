@@ -1,5 +1,7 @@
 import React from "react";
+import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import "./toolbox.css";
+import { Room } from "../state";
 
 export const TOOLS = {
   Mouse: "M",
@@ -11,24 +13,75 @@ export const TOOLS = {
   // Cube: "U",
 } as const;
 
-export interface ToolboxState {
+interface State {
   selected: keyof typeof TOOLS;
 }
 
 interface Props {
-  onChange: (state: ToolboxState) => void;
+  scene: BABYLON.Scene;
+  room: Room;
 }
 
-export class Toolbox extends React.Component<Props, ToolboxState> {
+export class Toolbox extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
 
     this.state = { selected: "Mouse" };
-    this.props.onChange(this.state);
   }
 
+  private onPointerObservableObserver: BABYLON.Observer<BABYLON.PointerInfo> | null =
+    null;
+
+  componentDidMount() {
+    this.onPointerObservableObserver = this.props.scene.onPointerObservable.add(
+      this.onPointerObservable
+    );
+  }
+
+  componentWillUnmount() {
+    this.props.scene.onPointerObservable.remove(
+      this.onPointerObservableObserver
+    );
+  }
+
+  private onPointerObservable = (e: BABYLON.PointerInfo) => {
+    if (e.type == BABYLON.PointerEventTypes.POINTERDOWN) {
+      if (e.pickInfo !== null && e.pickInfo.pickedMesh !== null) {
+        // Place furniture.
+        // TODO: only on ground, not on furniture
+        if (e.pickInfo.distance < 5 && this.state.selected !== "Mouse") {
+          // Determine rotation angle: face towards ray.
+          const angle = Math.atan2(
+            e.pickInfo.ray!.direction.x,
+            e.pickInfo.ray!.direction.z
+          );
+          const rotation = new BABYLON.Vector3(0, angle, 0);
+          // TODO: make tool do this
+          switch (this.state.selected) {
+            case "Bear":
+              this.props.room.furnitures.addBoring(
+                e.pickInfo.pickedPoint!,
+                rotation,
+                "black_bear.gltf"
+              );
+              break;
+            case "Easel":
+              this.props.room.furnitures.addBoring(
+                e.pickInfo.pickedPoint!,
+                rotation,
+                "easel.gltf"
+              );
+              break;
+          }
+        }
+      }
+    }
+  };
+
   componentDidUpdate() {
-    this.props.onChange(this.state);
+    // TODO: only change mouse cursor when it's over a valid location?
+    this.props.scene.defaultCursor =
+      this.state.selected === "Mouse" ? "default" : "pointer";
   }
 
   render() {
