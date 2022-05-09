@@ -1,6 +1,6 @@
 import React from "react";
-import { Player } from "../state/player";
-import { Globals } from "../util";
+import { Player } from "../../state/player";
+import { Globals } from "../../util";
 import "./name_input.css";
 
 interface Props {

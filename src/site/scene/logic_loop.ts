@@ -3,7 +3,7 @@ import { PlayerAudio } from "../calling";
 import { HIGHLIGHT_THRESHOLD, Player } from "../state/player";
 import { PlayerSet } from "../state/player_set";
 
-export function runLogicLoop(
+export function startLogicLoop(
   ourPlayer: Player,
   players: PlayerSet,
   ourPlayerAudio: PlayerAudio

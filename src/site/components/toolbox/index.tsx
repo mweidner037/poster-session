@@ -1,7 +1,7 @@
 import React from "react";
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
-import "./toolbox.css";
-import { Room } from "../state";
+import "./index.css";
+import { Room } from "../../state";
 
 export const TOOLS = {
   Mouse: "M",
@@ -23,27 +23,27 @@ interface Props {
 }
 
 export class Toolbox extends React.Component<Props, State> {
+  private removeListeners: (() => void) | null = null;
+
   constructor(props: Props) {
     super(props);
 
     this.state = { selected: "Mouse" };
   }
 
-  private onPointerObservableObserver: BABYLON.Observer<BABYLON.PointerInfo> | null =
-    null;
-
   componentDidMount() {
-    this.onPointerObservableObserver = this.props.scene.onPointerObservable.add(
-      this.onPointerObservable
-    );
+    const scene = this.props.scene;
+    const observer = scene.onPointerObservable.add(this.onPointerObservable);
+    this.removeListeners = () => {
+      scene.onPointerObservable.remove(observer);
+    };
   }
 
   componentWillUnmount() {
-    this.props.scene.onPointerObservable.remove(
-      this.onPointerObservableObserver
-    );
+    this.removeListeners!();
   }
 
+  // TODO: move to CanvasWrapper, which should take the toolbox state as a prop.
   private onPointerObservable = (e: BABYLON.PointerInfo) => {
     if (e.type == BABYLON.PointerEventTypes.POINTERDOWN) {
       if (e.pickInfo !== null && e.pickInfo.pickedMesh !== null) {

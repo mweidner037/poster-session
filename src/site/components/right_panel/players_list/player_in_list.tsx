@@ -1,5 +1,5 @@
 import React from "react";
-import { Player } from "../state/player";
+import { Player } from "../../../state/player";
 import "./player_in_list.css";
 
 interface Props {
@@ -7,7 +7,7 @@ interface Props {
 }
 
 export class PlayerInList extends React.Component<Props> {
-  private removeCollabListeners: (() => void) | null = null;
+  private removeListeners: (() => void) | null = null;
 
   componentDidMount() {
     // Force rerender when this.props.player changes.
@@ -18,17 +18,15 @@ export class PlayerInList extends React.Component<Props> {
     const removeHueListener = this.props.player.state.hue.on("Set", () =>
       this.setState({})
     );
-    this.removeCollabListeners = () => {
+    this.removeListeners = () => {
       removeDisplayNameListener();
       removeHueListener();
     };
   }
 
   componentWillUnmount() {
-    if (this.removeCollabListeners !== null) {
-      this.removeCollabListeners();
-      this.removeCollabListeners = null;
-    }
+    this.removeListeners!();
+    this.removeListeners = null;
   }
 
   render() {

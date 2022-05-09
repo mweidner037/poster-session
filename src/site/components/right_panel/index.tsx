@@ -1,9 +1,9 @@
 import React from "react";
-import { Player, PlayerSet } from "../state";
+import { Player, PlayerSet } from "../../state";
 import { ColorInput } from "./color_input";
 import { NameInput } from "./name_input";
 import { PlayersList } from "./players_list";
-import "./right_panel.css";
+import "./index.css";
 
 interface Props {
   players: PlayerSet;

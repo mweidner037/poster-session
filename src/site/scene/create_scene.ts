@@ -1,5 +1,5 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
-import { CAMERA_PERSPECTIVES } from "./handle_camera_perspective";
+import { CAMERA_PERSPECTIVES } from "./camera_perspectives";
 
 export function createScene(
   renderCanvas: HTMLCanvasElement

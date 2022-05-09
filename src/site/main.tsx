@@ -12,17 +12,19 @@ import {
   PeerJSManager,
   PlayerAudio,
 } from "./calling";
-import { createScene, MeshStore, KeyTracker, setupScene } from "./scene";
+import {
+  createScene,
+  MeshStore,
+  KeyTracker,
+  addTiledGround,
+  startLogicLoop,
+} from "./scene";
 import { Globals, setGlobals } from "./util";
 import { Room } from "./state";
-import { RightPanel, Toolbox } from "./components";
+import { ReactMain } from "./components";
 import { connectToServer } from "./net";
 
 (async function () {
-  // -----------------------------------------------------
-  // Setup
-  // -----------------------------------------------------
-
   // Create replica and connect it to the server (server/main.ts).
   const replica = new SerialRuntime({
     batchingStrategy: new collabs.RateLimitBatchingStrategy(100),
@@ -44,9 +46,8 @@ import { connectToServer } from "./net";
   const peerServer = new Peer(peerID);
 
   // Create scene.
-  const renderCanvas = document.getElementById(
-    "renderCanvas"
-  ) as HTMLCanvasElement;
+  const renderCanvas = document.createElement("canvas");
+  renderCanvas.className = "renderCanvas";
   const [scene, camera, highlightLayer] = createScene(renderCanvas);
 
   // Get audio input. Do it now to start requesting user audio permission.
@@ -88,32 +89,29 @@ import { connectToServer } from "./net";
   );
   camera.parent = ourPlayer.mesh;
 
-  // Setup WebRTC.
-  new PeerJSManager(peerServer, ourPlayer, room.players, ourAudioStream);
-
-  // -----------------------------------------------------
-  // Create components.
-  // -----------------------------------------------------
-
-  // Right panel.
+  // Render React components.
   ReactDOM.render(
-    <RightPanel players={room.players} ourPlayer={ourPlayer} />,
-    document.getElementById("rightPanelRoot")
+    <ReactMain
+      scene={scene}
+      camera={camera}
+      room={room}
+      ourPlayer={ourPlayer}
+    />,
+    document.getElementById("reactRoot")
   );
 
-  // Toolbox (left panel).
-  // TODO: only show this in editor mode.
-  ReactDOM.render(
-    <Toolbox scene={scene} room={room} />,
-    document.getElementById("toolboxRoot")
-  );
+  // Add a basic tiled ground to the scene.
+  // TODO: generify this.
+  addTiledGround(scene);
 
-  // Scene (center panel).
-  setupScene(
-    scene,
-    camera,
+  // Start game logic loop, which sends ourPlayer's position/etc. to the
+  // server and bigTick's players.
+  startLogicLoop(
     ourPlayer,
-    room,
+    room.players,
     new PlayerAudio(ourAudioStream, undefined, true)
   );
+
+  // Setup WebRTC.
+  new PeerJSManager(peerServer, ourPlayer, room.players, ourAudioStream);
 })();

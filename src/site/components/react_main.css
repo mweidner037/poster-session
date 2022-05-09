@@ -1,0 +1,44 @@
+.reactMainDiv {
+  display: flex;
+  flex-direction: row;
+}
+
+.toolboxRoot {
+  flex: 0 0 auto;
+  width: 230px;
+
+  min-height: 400px;
+  box-sizing: border-box;
+  overflow-x: auto;
+  overflow-y: auto;
+
+  padding: 0;
+  margin: 0;
+}
+
+.canvasWrapper {
+  flex: 1 1 400px;
+  display: block;
+
+  min-width: 400px;
+  min-height: 400px;
+}
+
+.rightPanelRoot {
+  flex: 0 0 auto;
+  width: 230px;
+
+  min-height: 400px;
+  box-sizing: border-box;
+  overflow-y: auto;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 10pt;
+  border-style: ridge;
+  background-color: darkgrey;
+
+  font-size: 20pt;
+  font-weight: bold;
+}

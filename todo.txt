@@ -1,6 +1,7 @@
+- Tiled ground not pickable for some reason?
 - Generic React superclass that wraps an EventEmitter, for ease of wrapping Collabs state?
 - Replace PeerJS server with own. For now, since not using Heroku anyway, just have it run on a different port.
-- Move toolbox effects into toolbox (specifically, into tools).
+- Move toolbox effects into CanvasWrapper.
 - randomize player starting positions/rotations (discussion circle?)
 - non-bear view of own volume level? For 1st person mode.
 - Also: "Audio connecting..." indicator, for until PeerJS has connected. Failure indicator if it fails.

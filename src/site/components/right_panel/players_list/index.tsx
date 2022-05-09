@@ -1,8 +1,8 @@
 import React from "react";
-import { Player } from "../state/player";
-import { PlayerSet } from "../state/player_set";
+import { Player } from "../../../state/player";
+import { PlayerSet } from "../../../state/player_set";
 import { PlayerInList } from "./player_in_list";
-import "./players_list.css";
+import "./index.css";
 
 interface Props {
   players: PlayerSet;
@@ -10,20 +10,18 @@ interface Props {
 }
 
 export class PlayersList extends React.Component<Props> {
-  private removeCollabListeners: (() => void) | null = null;
+  private removeListeners: (() => void) | null = null;
 
   componentDidMount() {
     // Force rerender when this.props.players changes.
-    this.removeCollabListeners = this.props.players.on("NameSetChange", () => {
+    this.removeListeners = this.props.players.on("NameSetChange", () => {
       this.setState({});
     });
   }
 
   componentWillUnmount() {
-    if (this.removeCollabListeners !== null) {
-      this.removeCollabListeners();
-      this.removeCollabListeners = null;
-    }
+    this.removeListeners!();
+    this.removeListeners = null;
   }
 
   render() {

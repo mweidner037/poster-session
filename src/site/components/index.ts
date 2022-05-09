@@ -1,2 +1,1 @@
-export * from "./toolbox";
-export * from "./right_panel";
+export * from "./react_main";

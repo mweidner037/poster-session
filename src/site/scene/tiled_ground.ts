@@ -1,5 +1,9 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 
+/**
+ * Adds a placeholder tiled ground to the scene.
+ * TODO: generify (make part of room state/furniture).
+ */
 export function addTiledGround(scene: BABYLON.Scene) {
   const grid = {
     h: 16,

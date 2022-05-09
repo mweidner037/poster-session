@@ -1,6 +1,7 @@
 import React from "react";
-import { Player } from "../state/player";
-import { Globals } from "../util";
+import { Player } from "../../../state/player";
+import { Globals } from "../../../util";
+import ColorsImage from "./colors_image.png";
 
 interface Props {
   ourPlayer: Player;
@@ -24,7 +25,7 @@ export class ColorInput extends React.Component<Props> {
     colorInputImage.onload = () => {
       this.ctx!.drawImage(colorInputImage, 10, 0);
     };
-    colorInputImage.src = "assets/color_input_image.png";
+    colorInputImage.src = ColorsImage;
 
     this.redraw();
   }
