@@ -2,8 +2,9 @@ import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import React from "react";
 import { Globals } from "../util";
 import { ROTATION_SPEED, TRANSLATION_SPEED } from "../../common/consts";
-import { Player, PlayerSet } from "../state";
+import { Player, Room } from "../state";
 import { CAMERA_PERSPECTIVES } from "../scene/camera_perspectives";
+import { TOOLS } from "./toolbox";
 
 interface Props {
   /** Never changes. */
@@ -11,9 +12,10 @@ interface Props {
   /** Never changes. */
   camera: BABYLON.UniversalCamera;
   /** Never changes. */
-  players: PlayerSet;
+  room: Room;
   /** Never changes. */
   ourPlayer: Player;
+  tool: keyof typeof TOOLS;
 }
 
 /**
@@ -47,21 +49,19 @@ export class CanvasWrapper extends React.Component<Props> {
     canvasDiv.appendChild(Globals().renderCanvas);
 
     // Add input listeners.
-    const removePlayerMovement = this.handlePlayerMovement(
-      this.props.scene,
-      this.props.players,
-      this.props.ourPlayer
-    );
-    const removeCameraPerspectives = this.handleCameraPerspective(
-      this.props.scene,
-      this.props.camera
-    );
+    const removePlayerMovement = this.handlePlayerMovement();
+    const removeCameraPerspectives = this.handleCameraPerspective();
+    const removeToolMouseInput = this.handleToolMouseInput();
 
     this.removeListeners = () => {
       canvasDiv.removeChild(Globals().renderCanvas);
       removePlayerMovement();
       removeCameraPerspectives();
+      removeToolMouseInput();
     };
+
+    // Initial update.
+    this.updateMouse();
   }
 
   componentWillUnmount() {
@@ -71,14 +71,14 @@ export class CanvasWrapper extends React.Component<Props> {
   /**
    * @return function to remove listeners
    */
-  private handlePlayerMovement(
-    scene: BABYLON.Scene,
-    players: PlayerSet,
-    ourPlayer: Player
-  ): () => void {
+  private handlePlayerMovement(): () => void {
     // Render loop. Note we do our own movements here,
     // but only update the server in the logic loop.
     // This is okay because Player doesn't sync local changes.
+    const scene = this.props.scene;
+    const players = this.props.room.players;
+    const ourPlayer = this.props.ourPlayer;
+
     let lastTime = -1;
     const observer = scene.onBeforeRenderObservable.add(() => {
       if (lastTime === -1) {
@@ -123,22 +123,78 @@ export class CanvasWrapper extends React.Component<Props> {
   /**
    * @return function to remove listeners
    */
-  private handleCameraPerspective(
-    scene: BABYLON.Scene,
-    camera: BABYLON.UniversalCamera
-  ): () => void {
+  private handleCameraPerspective(): () => void {
+    const scene = this.props.scene;
+
     let index = 0;
     const observer = scene.onKeyboardObservable.add((e) => {
       if (e.event.type === "keydown" && e.event.key.toLowerCase() === "c") {
         // Toggle camera perspective.
         index = (index + 1) % CAMERA_PERSPECTIVES.length;
-        camera.position = CAMERA_PERSPECTIVES[index];
+        this.props.camera.position = CAMERA_PERSPECTIVES[index];
       }
     });
 
     return () => {
       scene.onKeyboardObservable.remove(observer);
     };
+  }
+
+  /**
+   * @return function to remove listeners
+   */
+  private handleToolMouseInput(): () => void {
+    const scene = this.props.scene;
+
+    const observer = scene.onPointerObservable.add((e) => {
+      if (e.type == BABYLON.PointerEventTypes.POINTERDOWN) {
+        if (e.pickInfo !== null && e.pickInfo.pickedMesh !== null) {
+          // Place furniture.
+          // TODO: only on ground, not on furniture
+          if (e.pickInfo.distance < 5 && this.props.tool !== "Mouse") {
+            // Determine rotation angle: face towards ray.
+            const angle = Math.atan2(
+              e.pickInfo.ray!.direction.x,
+              e.pickInfo.ray!.direction.z
+            );
+            const rotation = new BABYLON.Vector3(0, angle, 0);
+            switch (this.props.tool) {
+              case "Bear":
+                this.props.room.furnitures.addBoring(
+                  e.pickInfo.pickedPoint!,
+                  rotation,
+                  "black_bear.gltf"
+                );
+                break;
+              case "Easel":
+                this.props.room.furnitures.addBoring(
+                  e.pickInfo.pickedPoint!,
+                  rotation,
+                  "easel.gltf"
+                );
+                break;
+            }
+          }
+        }
+      }
+    });
+
+    return () => {
+      scene.onPointerObservable.remove(observer);
+    };
+  }
+
+  componentDidUpdate() {
+    this.updateMouse();
+  }
+
+  /**
+   * Sets mouse cursor according to props.tool.
+   */
+  private updateMouse() {
+    // TODO: only change mouse cursor when it's over a valid location?
+    this.props.scene.defaultCursor =
+      this.props.tool === "Mouse" ? "default" : "pointer";
   }
 
   render() {
