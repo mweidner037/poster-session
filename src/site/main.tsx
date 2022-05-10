@@ -12,13 +12,7 @@ import {
   PeerJSManager,
   PlayerAudio,
 } from "./calling";
-import {
-  createScene,
-  MeshStore,
-  KeyTracker,
-  addTiledGround,
-  startLogicLoop,
-} from "./scene";
+import { createScene, MeshStore, KeyTracker, startLogicLoop } from "./scene";
 import { Globals, setGlobals } from "./util";
 import { Room } from "./state";
 import { ReactMain } from "./components";
@@ -99,10 +93,6 @@ import { connectToServer } from "./net";
     />,
     document.getElementById("reactRoot")
   );
-
-  // Add a basic tiled ground to the scene.
-  // TODO: generify this.
-  addTiledGround(scene);
 
   // Start game logic loop, which sends ourPlayer's position/etc. to the
   // server and bigTick's players.

@@ -7,6 +7,7 @@ export class BoringFurnitureState extends FurnitureState {
     initToken: collabs.InitToken,
     readonly position: MyVector3,
     readonly rotation: MyVector3,
+    readonly isGround: boolean,
     /** The mesh's filename within assets/furnitures. */
     readonly mesh: string
   ) {

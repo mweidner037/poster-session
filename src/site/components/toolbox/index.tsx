@@ -5,8 +5,10 @@ import { Room } from "../../state";
 
 export const TOOLS = {
   Mouse: "M",
+  Edit: "E",
+  Delete: "X",
   Bear: "B",
-  Easel: "E",
+  Easel: "A",
   // Projector: "P",
   // Wall: "W",
   // Chair: "C",

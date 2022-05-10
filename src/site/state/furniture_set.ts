@@ -40,7 +40,11 @@ export class FurnitureSet {
       const meshCopyPromise = meshTemplatePromise.then(
         (meshTemplate) => <BABYLON.Mesh>meshTemplate.clone("mesh", null)!
       );
-      furniture = new BoringFurniture(furnitureState, meshCopyPromise);
+      furniture = new BoringFurniture(
+        furnitureState,
+        furnitureState.isGround,
+        meshCopyPromise
+      );
     } else {
       throw new Error(
         "Unknown furnitureState class: " + furnitureState.constructor.name
@@ -59,12 +63,14 @@ export class FurnitureSet {
   addBoring(
     position: BABYLON.Vector3,
     rotation: BABYLON.Vector3,
+    isGround: boolean,
     mesh: string
   ) {
     this.state.add(
       "boring",
       MyVector3.from(position),
       MyVector3.from(rotation),
+      isGround,
       mesh
     );
   }

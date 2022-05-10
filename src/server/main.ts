@@ -5,7 +5,7 @@ import https = require("https");
 import fs = require("fs");
 import WebSocket = require("ws");
 import { PlayerState, RoomState, SerialRuntime } from "../common/state";
-import { WebSocketMessage } from "../common/util";
+import { MyVector3, WebSocketMessage } from "../common/util";
 import * as collabs from "@collabs/collabs";
 
 const app = express();
@@ -38,6 +38,7 @@ if (useHttps) {
 const serverReplica = new SerialRuntime({
   batchingStrategy: new collabs.RateLimitBatchingStrategy(100),
   replicaId: "server",
+  isServer: true,
 });
 const roomState = serverReplica.registerCollab(
   "room",
@@ -49,6 +50,15 @@ roomState.players.on("Add", (e) => {
 });
 
 serverReplica.load(collabs.Optional.empty());
+
+// Construct initial state: a tiled ground.
+roomState.furniture.add(
+  "boring",
+  MyVector3.new(0, 0, 0),
+  MyVector3.new(0, 0, 0),
+  true,
+  "tiling.gltf"
+);
 
 serverReplica.on("Send", (e) => {
   broadcast(e.message);

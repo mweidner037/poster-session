@@ -1,0 +1,270 @@
+{
+    "asset" : {
+        "generator" : "Khronos glTF Blender I/O v1.1.46",
+        "version" : "2.0"
+    },
+    "scene" : 0,
+    "scenes" : [
+        {
+            "name" : "Scene",
+            "nodes" : [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8
+            ]
+        }
+    ],
+    "nodes" : [
+        {
+            "name" : "Light",
+            "rotation" : [
+                0.16907575726509094,
+                0.7558803558349609,
+                -0.27217137813568115,
+                0.570947527885437
+            ],
+            "translation" : [
+                4.076245307922363,
+                5.903861999511719,
+                -1.0054539442062378
+            ]
+        },
+        {
+            "name" : "Camera",
+            "rotation" : [
+                0.483536034822464,
+                0.33687159419059753,
+                -0.20870360732078552,
+                0.7804827094078064
+            ],
+            "translation" : [
+                7.358891487121582,
+                4.958309173583984,
+                6.925790786743164
+            ]
+        },
+        {
+            "name" : "Light.001",
+            "rotation" : [
+                0.5232754349708557,
+                0.7269424200057983,
+                0.3420339524745941,
+                0.284166157245636
+            ],
+            "translation" : [
+                4.076245307922363,
+                1.0054532289505005,
+                5.903862476348877
+            ]
+        },
+        {
+            "name" : "Camera.001",
+            "rotation" : [
+                0.8937962055206299,
+                0.3857799470424652,
+                0.09062854200601578,
+                0.20997288823127747
+            ],
+            "translation" : [
+                7.358891487121582,
+                -6.925792217254639,
+                4.958308696746826
+            ]
+        },
+        {
+            "name" : "Light.002",
+            "rotation" : [
+                -0.5709474086761475,
+                -0.7558804154396057,
+                0.2721714377403259,
+                0.1690761148929596
+            ],
+            "translation" : [
+                4.076245307922363,
+                1.0054525136947632,
+                5.903862953186035
+            ]
+        },
+        {
+            "name" : "Camera.002",
+            "rotation" : [
+                -0.7804824709892273,
+                -0.3368717432022095,
+                0.2087033987045288,
+                0.4835362732410431
+            ],
+            "translation" : [
+                7.358891487121582,
+                -6.925793647766113,
+                4.958308219909668
+            ]
+        },
+        {
+            "name" : "Light.003",
+            "rotation" : [
+                -0.2841666638851166,
+                -0.3420340120792389,
+                0.7269421219825745,
+                0.5232754349708557
+            ],
+            "translation" : [
+                4.076245307922363,
+                1.0054517984390259,
+                5.903863430023193
+            ]
+        },
+        {
+            "name" : "Camera.003",
+            "rotation" : [
+                -0.20997288823127747,
+                -0.09062868356704712,
+                0.3857799470424652,
+                0.8937962055206299
+            ],
+            "translation" : [
+                7.358891487121582,
+                -6.925795078277588,
+                4.95830774307251
+            ]
+        },
+        {
+            "mesh" : 0,
+            "name" : "Plane",
+            "rotation" : [
+                0.7071068286895752,
+                0,
+                0,
+                0.7071067094802856
+            ]
+        }
+    ],
+    "materials" : [
+        {
+            "doubleSided" : true,
+            "emissiveFactor" : [
+                0,
+                0,
+                0
+            ],
+            "name" : "Material.002",
+            "pbrMetallicRoughness" : {
+                "baseColorTexture" : {
+                    "index" : 0,
+                    "texCoord" : 0
+                },
+                "metallicFactor" : 0,
+                "roughnessFactor" : 0.5
+            }
+        }
+    ],
+    "meshes" : [
+        {
+            "name" : "Plane",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 0,
+                        "NORMAL" : 1,
+                        "TEXCOORD_0" : 2
+                    },
+                    "indices" : 3,
+                    "material" : 0
+                }
+            ]
+        }
+    ],
+    "textures" : [
+        {
+            "sampler" : 0,
+            "source" : 0
+        }
+    ],
+    "images" : [
+        {
+            "bufferView" : 4,
+            "mimeType" : "image/png",
+            "name" : "Image_0"
+        }
+    ],
+    "accessors" : [
+        {
+            "bufferView" : 0,
+            "componentType" : 5126,
+            "count" : 4,
+            "max" : [
+                8,
+                0,
+                8.000001907348633
+            ],
+            "min" : [
+                -8,
+                0,
+                -8.000001907348633
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 1,
+            "componentType" : 5126,
+            "count" : 4,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 2,
+            "componentType" : 5126,
+            "count" : 4,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 3,
+            "componentType" : 5123,
+            "count" : 6,
+            "type" : "SCALAR"
+        }
+    ],
+    "bufferViews" : [
+        {
+            "buffer" : 0,
+            "byteLength" : 48,
+            "byteOffset" : 0
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 48,
+            "byteOffset" : 48
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 32,
+            "byteOffset" : 96
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 12,
+            "byteOffset" : 128
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 561,
+            "byteOffset" : 140
+        }
+    ],
+    "samplers" : [
+        {
+            "magFilter" : 9728,
+            "minFilter" : 9984
+        }
+    ],
+    "buffers" : [
+        {
+            "byteLength" : 704,
+            "uri" : "data:application/octet-stream;base64,AAAAQQAAAAACAADBAAAAQQAAAAACAABBAAAAwQAAAAACAABBAAAAwQAAAAACAADBAAAAAAAAgL8AAACAAAAAAAAAgL8AAACAAAAAAAAAgL8AAACAAAAAAAAAgL8AAACAAACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAAAAAAAAgD8AAAEAAgAAAAIAAwCJUE5HDQoaCgAAAA1JSERSAAAAEAAAABAIAgAAAJCRaDYAAAGDaUNDUElDQyBwcm9maWxlAAAokX2RPUjDQBzFX1NLS6k42KGIQ4bqZEFUxFGrUIQKoVZo1cHk0i9o0pKkuDgKrgUHPxarDi7Oujq4CoLgB4ijk5Oii5T4v6TQIsaD4368u/e4ewcIrSrTzL5xQNMtI5NKirn8qhh8RQBhACHEZGbW5yQpDc/xdQ8fX+8SPMv73J+jXy2YDPCJxLOsbljEG8TTm1ad8z5xlJVllficeMygCxI/cl1x+Y1zyWGBZ0aNbGaeOEoslnpY6WFWNjTiKeK4qumUL+RcVjlvcdaqDda5J39hpKCvLHOd5jBSWMQSJIhQ0EAFVVhI0KqTYiJD+0kP/5Djl8ilkKsCRo4F1KBBdvzgf/C7W7M4OeEmRZJA4MW2P0aA4C7Qbtr297Ftt08A/zNwpXf9tRYw80l6s6vFj4CBbeDiuqspe8DlDhB7qsuG7Eh+mkKxCLyf0TflgcFbILzm9tbZx+kDkKWu0jfAwSEwWqLsdY93h3p7+/dMp78f5IVybsgPLiwAAAAJcEhZcwAALiMAAC4jAXilP3YAAAAHdElNRQfmBQoACwE/Z9R2AAAAGXRFWHRDb21tZW50AENyZWF0ZWQgd2l0aCBHSU1QV4EOFwAAABxJREFUKM9jYGBg+P//PwkkaaohYNSGURuGhg0A2Vd+kOHQ7YAAAAAASUVORK5CYIIAAAA="
+        }
+    ]
+}

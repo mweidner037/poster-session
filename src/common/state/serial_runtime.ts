@@ -19,15 +19,18 @@ export class SerialRuntime extends collabs.AbstractRuntime<SerialRuntimeEventsRe
   private _isLoaded = false;
   private readonly batchingLayer: collabs.BatchingLayer;
   private readonly registry: collabs.PublicCObject;
+  readonly isServer: boolean;
 
   constructor(options?: {
     batchingStrategy?: collabs.BatchingStrategy;
     replicaId?: string;
+    isServer?: boolean;
   }) {
     super(options?.replicaId ?? collabs.randomReplicaId());
 
     const batchingStrategy =
       options?.batchingStrategy ?? new collabs.ImmediateBatchingStrategy();
+    this.isServer = options?.isServer ?? false;
 
     // Setup Collab tree.
     this.batchingLayer = this.setRootCollab(
@@ -68,7 +71,10 @@ export class SerialRuntime extends collabs.AbstractRuntime<SerialRuntimeEventsRe
     const runtimeMessage = <RuntimeMessage>JSON.parse(message);
     this.batchingLayer.receive(
       [collabs.stringAsBytes(runtimeMessage.message)],
-      { sender: runtimeMessage.sender, isLocalEcho: false }
+      {
+        sender: runtimeMessage.sender,
+        isLocalEcho: false,
+      }
     );
   }
 

@@ -1,6 +1,7 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import { FurnitureState } from "../../../common/state";
 import { MyVector3 } from "../../../common/util";
+import { setMeshSource } from "../../scene";
 import { Furniture } from "../furniture";
 
 /**
@@ -9,8 +10,11 @@ import { Furniture } from "../furniture";
 export class BoringFurniture extends Furniture {
   private mesh: BABYLON.Mesh | null = null;
 
-  // TODO: texture
-  constructor(state: FurnitureState, meshPromise: Promise<BABYLON.Mesh>) {
+  constructor(
+    state: FurnitureState,
+    readonly isGround: boolean,
+    meshPromise: Promise<BABYLON.Mesh>
+  ) {
     super(state);
 
     meshPromise.then((mesh) => {
@@ -21,8 +25,29 @@ export class BoringFurniture extends Furniture {
         this.mesh.setEnabled(true);
         MyVector3.syncTo(this.state.position, this.mesh.position);
         MyVector3.syncTo(this.state.rotation, this.mesh.rotation);
+        setMeshSource(this.mesh, this);
       }
     });
+  }
+
+  canEdit(): boolean {
+    // TODO: remove
+    console.log("canEdit", this.state.position);
+    return false;
+  }
+
+  edit(): void {
+    throw new Error("Cannot edit");
+  }
+
+  canInteract(): boolean {
+    // TODO: remove
+    console.log("canInteract", this.state.position);
+    return false;
+  }
+
+  interact(): void {
+    throw new Error("Cannot interact");
   }
 
   private disposed = false;
@@ -30,15 +55,8 @@ export class BoringFurniture extends Furniture {
     if (this.disposed) return;
     this.disposed = true;
     if (this.mesh !== null) {
+      // TODO: disposeMaterialsAndTextures (second param)?
       this.mesh.dispose();
     }
-  }
-
-  canInteract(): boolean {
-    return false;
-  }
-
-  interact(): void {
-    throw new Error("Cannot interact");
   }
 }

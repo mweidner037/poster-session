@@ -2,9 +2,12 @@ import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import React from "react";
 import { Globals } from "../util";
 import { ROTATION_SPEED, TRANSLATION_SPEED } from "../../common/consts";
-import { Player, Room } from "../state";
+import { Furniture, Player, Room } from "../state";
 import { CAMERA_PERSPECTIVES } from "../scene/camera_perspectives";
 import { TOOLS } from "./toolbox";
+import { getMeshSource } from "../scene";
+
+const PICK_DISTANCE = 5;
 
 interface Props {
   /** Never changes. */
@@ -51,13 +54,13 @@ export class CanvasWrapper extends React.Component<Props> {
     // Add input listeners.
     const removePlayerMovement = this.handlePlayerMovement();
     const removeCameraPerspectives = this.handleCameraPerspective();
-    const removeToolMouseInput = this.handleToolMouseInput();
+    const removeMouseInput = this.handleMouseInput();
 
     this.removeListeners = () => {
       canvasDiv.removeChild(Globals().renderCanvas);
       removePlayerMovement();
       removeCameraPerspectives();
-      removeToolMouseInput();
+      removeMouseInput();
     };
 
     // Initial update.
@@ -143,37 +146,49 @@ export class CanvasWrapper extends React.Component<Props> {
   /**
    * @return function to remove listeners
    */
-  private handleToolMouseInput(): () => void {
+  private handleMouseInput(): () => void {
     const scene = this.props.scene;
 
     const observer = scene.onPointerObservable.add((e) => {
+      // TODO: set cursor based on canInteract/canEdit and chosen tool,
+      // not just chosen tool like currently.
+      // Then need to update when player moves or tool changes.
       if (e.type == BABYLON.PointerEventTypes.POINTERDOWN) {
-        if (e.pickInfo !== null && e.pickInfo.pickedMesh !== null) {
-          // Place furniture.
-          // TODO: only on ground, not on furniture
-          if (e.pickInfo.distance < 5 && this.props.tool !== "Mouse") {
-            // Determine rotation angle: face towards ray.
-            const angle = Math.atan2(
-              e.pickInfo.ray!.direction.x,
-              e.pickInfo.ray!.direction.z
-            );
-            const rotation = new BABYLON.Vector3(0, angle, 0);
-            switch (this.props.tool) {
-              case "Bear":
-                this.props.room.furnitures.addBoring(
-                  e.pickInfo.pickedPoint!,
-                  rotation,
-                  "black_bear.gltf"
-                );
-                break;
-              case "Easel":
-                this.props.room.furnitures.addBoring(
-                  e.pickInfo.pickedPoint!,
-                  rotation,
-                  "easel.gltf"
-                );
-                break;
-            }
+        if (e.pickInfo === null || e.pickInfo.pickedMesh === null) return;
+        if (e.pickInfo.distance > PICK_DISTANCE) return;
+        const pickedObject = getMeshSource(e.pickInfo.pickedMesh);
+        if (pickedObject === undefined) return;
+        // Successfully picked an object. Do an action depending on its type and
+        // the current tool.
+        if (pickedObject instanceof Furniture) {
+          switch (this.props.tool) {
+            case "Mouse":
+              // TODO: shift+mouse = edit mode.
+              // TODO: also use this case when toolbox is hidden.
+              if (pickedObject.canInteract()) pickedObject.interact();
+              break;
+            case "Edit":
+              if (pickedObject.canEdit()) pickedObject.edit();
+              break;
+            case "Delete":
+              this.props.room.furnitures.delete(pickedObject);
+              break;
+            case "Bear":
+            case "Easel":
+              // Place furniture on top of this furniture if it is a ground.
+              if (!pickedObject.isGround) return;
+              // Determine rotation angle: face towards ray.
+              const angle = Math.atan2(
+                e.pickInfo.ray!.direction.x,
+                e.pickInfo.ray!.direction.z
+              );
+              const rotation = new BABYLON.Vector3(0, angle, 0);
+              this.props.room.furnitures.addBoring(
+                e.pickInfo.pickedPoint!,
+                rotation,
+                false,
+                this.props.tool === "Bear" ? "black_bear.gltf" : "easel.gltf"
+              );
           }
         }
       }

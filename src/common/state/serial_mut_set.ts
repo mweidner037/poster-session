@@ -1,5 +1,6 @@
 import * as collabs from "@collabs/collabs";
 import * as BSON from "bson";
+import { SerialRuntime } from "./serial_runtime";
 
 // TODO: use Collabs version once it's exported.
 function makeUID(replicaID: string, replicaUniqueNumber: number): string {
@@ -107,7 +108,12 @@ export class SerialMutCSet<C extends collabs.Collab, Args extends any[]>
       messagePath.length--;
       child.receive(messagePath, meta);
     } else {
-      if (!this.processLocalEcho && meta.isLocalEcho) return;
+      if (
+        !this.processLocalEcho &&
+        meta.isLocalEcho &&
+        !(<SerialRuntime>this.runtime).isServer
+      )
+        return;
       if (
         !this.processRemoteEcho &&
         !meta.isLocalEcho &&
