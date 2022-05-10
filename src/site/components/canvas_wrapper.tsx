@@ -173,8 +173,8 @@ export class CanvasWrapper extends React.Component<Props> {
             case "Delete":
               this.props.room.furnitures.delete(pickedObject);
               break;
-            case "Bear":
             case "Easel":
+            case "Bear":
               // Place furniture on top of this furniture if it is a ground.
               if (!pickedObject.isGround) return;
               // Determine rotation angle: face towards ray.
@@ -183,12 +183,22 @@ export class CanvasWrapper extends React.Component<Props> {
                 e.pickInfo.ray!.direction.z
               );
               const rotation = new BABYLON.Vector3(0, angle, 0);
-              this.props.room.furnitures.addBoring(
-                e.pickInfo.pickedPoint!,
-                rotation,
-                false,
-                this.props.tool === "Bear" ? "black_bear.gltf" : "easel.gltf"
-              );
+              switch (this.props.tool) {
+                case "Easel":
+                  this.props.room.furnitures.addEasel(
+                    e.pickInfo.pickedPoint!,
+                    rotation
+                  );
+                  break;
+                case "Bear":
+                  this.props.room.furnitures.addBoring(
+                    e.pickInfo.pickedPoint!,
+                    rotation,
+                    false,
+                    "black_bear.gltf"
+                  );
+                  break;
+              }
           }
         }
       }

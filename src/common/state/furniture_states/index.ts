@@ -1,6 +1,7 @@
 import { BoringFurnitureState } from "./boring_furniture_state";
+import { EaselState } from "./easel_state";
 
-export { BoringFurnitureState };
+export { BoringFurnitureState, EaselState };
 
 // Update this map as you add new furniture types, in addition
 // to re-exporting them.
@@ -9,4 +10,5 @@ export { BoringFurnitureState };
 // argument (the usual convention for Collabs).
 export const FurnitureStateClasses = {
   boring: BoringFurnitureState,
+  easel: EaselState,
 } as const;

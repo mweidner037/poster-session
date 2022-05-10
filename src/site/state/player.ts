@@ -40,8 +40,10 @@ export class Player {
     Globals()
       .meshStore.getMesh(...DEFAULT_PLAYER_MESH)
       .then((meshTemplate) => {
-        this.displayMesh = <BABYLON.Mesh>meshTemplate.clone("bear", null)!;
-        this.displayMesh.parent = this.mesh;
+        if (this.mesh.isDisposed()) return;
+        this.displayMesh = <BABYLON.Mesh>(
+          meshTemplate.clone("player", this.mesh)!
+        );
         this.displayMeshMaterial = new BABYLON.StandardMaterial(
           "player_mat",
           scene

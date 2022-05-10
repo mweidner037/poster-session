@@ -5,14 +5,15 @@ import { FurnitureState } from "./furniture_state";
 import { PlayerState } from "./player_state";
 import { SerialMutCSet } from "./serial_mut_set";
 
-export type ToArgs<K> = K extends keyof typeof FurnitureStateClasses
-  ? [
-      type: K,
-      ...args: ConstructorParametersMinusInitToken<
-        typeof FurnitureStateClasses[K]
-      >
-    ]
-  : never;
+export type ToArgs<K extends keyof typeof FurnitureStateClasses> =
+  K extends keyof typeof FurnitureStateClasses
+    ? [
+        type: K,
+        ...args: ConstructorParametersMinusInitToken<
+          typeof FurnitureStateClasses[K]
+        >
+      ]
+    : never;
 
 export class RoomState extends collabs.CObject {
   readonly players: SerialMutCSet<
@@ -43,7 +44,11 @@ export class RoomState extends collabs.CObject {
     );
     this.furniture = this.addChild(
       "f",
-      collabs.Pre(SerialMutCSet)((valueInitToken, type, ...args) => {
+      collabs.Pre(SerialMutCSet)<
+        FurnitureState,
+        ToArgs<keyof typeof FurnitureStateClasses>
+      >((valueInitToken, type, ...args) => {
+        // @ts-ignore Typescript won't let us spread args for some reason.
         return new FurnitureStateClasses[type](valueInitToken, ...args);
       }, "remote")
     );

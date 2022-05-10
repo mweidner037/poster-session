@@ -13,6 +13,6 @@ export class Room {
     highlightLayer: BABYLON.HighlightLayer
   ) {
     this.players = new PlayerSet(state.players, scene, highlightLayer);
-    this.furnitures = new FurnitureSet(state.furniture);
+    this.furnitures = new FurnitureSet(state.furniture, scene);
   }
 }

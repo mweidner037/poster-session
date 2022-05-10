@@ -1,10 +1,10 @@
 import { FurnitureState, SerialMutCSet, ToArgs } from "../../common/state";
 import { MyVector3 } from "../../common/util";
-import { Globals } from "../util";
-import { BoringFurniture } from "./furnitures";
+import { BoringFurniture, Easel } from "./furnitures";
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import {
   BoringFurnitureState,
+  EaselState,
   FurnitureStateClasses,
 } from "../../common/state/furniture_states";
 import { Furniture } from "./furniture";
@@ -20,7 +20,8 @@ export class FurnitureSet {
     readonly state: SerialMutCSet<
       FurnitureState,
       ToArgs<keyof typeof FurnitureStateClasses>
-    >
+    >,
+    readonly scene: BABYLON.Scene
   ) {
     for (const furnitureState of this.state) {
       this.onAdd(furnitureState);
@@ -33,18 +34,9 @@ export class FurnitureSet {
     let furniture: Furniture;
 
     if (furnitureState instanceof BoringFurnitureState) {
-      const meshTemplatePromise = Globals().meshStore.getMesh(
-        "furnitures/" + furnitureState.mesh,
-        1
-      );
-      const meshCopyPromise = meshTemplatePromise.then(
-        (meshTemplate) => <BABYLON.Mesh>meshTemplate.clone("mesh", null)!
-      );
-      furniture = new BoringFurniture(
-        furnitureState,
-        furnitureState.isGround,
-        meshCopyPromise
-      );
+      furniture = new BoringFurniture(furnitureState);
+    } else if (furnitureState instanceof EaselState) {
+      furniture = new Easel(furnitureState, this.scene);
     } else {
       throw new Error(
         "Unknown furnitureState class: " + furnitureState.constructor.name
@@ -73,6 +65,10 @@ export class FurnitureSet {
       isGround,
       mesh
     );
+  }
+
+  addEasel(position: BABYLON.Vector3, rotation: BABYLON.Vector3) {
+    this.state.add("easel", MyVector3.from(position), MyVector3.from(rotation));
   }
 
   delete(furniture: Furniture) {

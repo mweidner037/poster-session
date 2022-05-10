@@ -1,7 +1,7 @@
 import { FurnitureState } from "../../common/state";
 
-export abstract class Furniture {
-  constructor(readonly state: FurnitureState) {}
+export abstract class Furniture<S extends FurnitureState = FurnitureState> {
+  constructor(readonly state: S) {}
 
   /**
    * Whether you can add other furniture on top of this furniture.
