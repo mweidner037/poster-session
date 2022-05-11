@@ -65,9 +65,6 @@ export class CanvasWrapper extends React.Component<Props> {
       removeCameraPerspectives();
       removeMouseInput();
     };
-
-    // Initial update.
-    this.updateMouse();
   }
 
   componentWillUnmount() {
@@ -158,11 +155,9 @@ export class CanvasWrapper extends React.Component<Props> {
    */
   private handleMouseInput(): () => void {
     const scene = this.props.scene;
+    scene.constantlyUpdateMeshUnderPointer = true;
 
     const observer = scene.onPointerObservable.add((e) => {
-      // TODO: set cursor based on canInteract/canEdit and chosen tool,
-      // not just chosen tool like currently.
-      // Then need to update when player moves or tool changes.
       if (e.type == BABYLON.PointerEventTypes.POINTERDOWN) {
         // Clicking outside an overlay cancels it.
         if (this.props.overlay !== null) {
@@ -217,27 +212,46 @@ export class CanvasWrapper extends React.Component<Props> {
                   );
                   break;
               }
+              break;
           }
         }
+      } else if (e.type === BABYLON.PointerEventTypes.POINTERMOVE) {
+        // Update the cursor based on what's under it.
+        let cursor = "default";
+        pick: {
+          if (e.pickInfo === null || e.pickInfo.pickedMesh === null) break pick;
+          if (e.pickInfo.distance > PICK_DISTANCE) break pick;
+          const pickedObject = getMeshSource(e.pickInfo.pickedMesh);
+          if (pickedObject === undefined) break pick;
+
+          // Successfully picked an object. Set the cursor depending on its
+          // type and the current tool.
+          if (pickedObject instanceof Furniture) {
+            switch (this.props.tool) {
+              case "Mouse":
+                if (pickedObject.canInteract()) cursor = "pointer";
+                break;
+              case "Edit":
+                if (pickedObject.canEdit()) cursor = "pointer";
+                break;
+              case "Delete":
+                cursor = "pointer";
+                break;
+              case "Easel":
+              case "Bear":
+                // Place furniture on top of this furniture if it is a ground.
+                if (pickedObject.isGround) cursor = "pointer";
+                break;
+            }
+          }
+        }
+        this.props.scene.defaultCursor = cursor;
       }
     });
 
     return () => {
       scene.onPointerObservable.remove(observer);
     };
-  }
-
-  componentDidUpdate() {
-    this.updateMouse();
-  }
-
-  /**
-   * Sets mouse cursor according to props.tool.
-   */
-  private updateMouse() {
-    // TODO: only change mouse cursor when it's over a valid location?
-    this.props.scene.defaultCursor =
-      this.props.tool === "Mouse" ? "default" : "pointer";
   }
 
   render() {
