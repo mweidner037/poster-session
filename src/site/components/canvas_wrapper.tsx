@@ -8,7 +8,7 @@ import { TOOLS } from "./toolbox";
 import { getMeshSource } from "../scene";
 import { Overlay } from "./react_main";
 
-const PICK_DISTANCE = 5;
+export const PICK_DISTANCE = 8;
 
 interface Props {
   /** Never changes. */

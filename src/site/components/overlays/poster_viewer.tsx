@@ -8,6 +8,13 @@ interface Props {
 
 export class PosterViewer extends React.Component<Props> {
   render() {
-    return <img className="posterViewerImage" src={this.props.imageURL} />;
+    // For some reason, need to wrap it an extra div to prevent a scrollbar
+    // from appearing, even though the image is supposed to take up exactly
+    // the available space.
+    return (
+      <div>
+        <img className="posterViewerImage" src={this.props.imageURL} />
+      </div>
+    );
   }
 }

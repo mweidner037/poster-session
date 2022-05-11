@@ -1,4 +1,5 @@
-- advanced instructions overlay with change camera, strafing, editing, etc.
+- test client disconnection due to internet failure; may need to reduce server's WS timeouts to prevent a leftover stuck player.
+- Click on a player in the list to locate them?
 - File upload: max height enforcement; make explicit that existing image (or null) is kept if you don't reupload; option to remove existing image; display image immediately after uploading (or if it's already present), then set height based on that (with option to ignore scale), only pushing when you submit; PosterViewer: use heightRatio instead of original image aspect ratio; allow other file formats (especially pdf)?; inches instead of cm;
 - Esc (on overlay or scene) to exit out of overlay
 - Focus on scene at startup and after granting/denying audio permissions.

@@ -63,6 +63,7 @@ import { connectToServer } from "./net";
     .then((mesh) => {
       mesh.rotation = new BABYLON.Vector3(-Math.PI / 2, Math.PI, 0);
     });
+  Globals().meshStore.getMesh("furnitures/easel.gltf", 1);
 
   // Wait for Collabs state to load. We need to do this before creating
   // room and ourPlayer, since room needs to see the loaded state,

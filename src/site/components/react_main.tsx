@@ -69,6 +69,7 @@ export class ReactMain extends React.Component<Props, State> {
           <RightPanel
             players={this.props.room.players}
             ourPlayer={this.props.ourPlayer}
+            setOverlay={this.setOverlay}
           />
         </div>
       </div>

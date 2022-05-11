@@ -4,10 +4,13 @@ import { ColorInput } from "./color_input";
 import { NameInput } from "./name_input";
 import { PlayersList } from "./players_list";
 import "./index.css";
+import { Overlay } from "../react_main";
+import { HelpOverlay } from "../overlays/help";
 
 interface Props {
   players: PlayerSet;
   ourPlayer: Player;
+  setOverlay: (overlay: Overlay) => void;
 }
 
 export class RightPanel extends React.Component<Props> {
@@ -17,10 +20,18 @@ export class RightPanel extends React.Component<Props> {
         <div className="rightTopDiv">
           <NameInput ourPlayer={this.props.ourPlayer} />
           <ColorInput ourPlayer={this.props.ourPlayer} />
-          <p>Controls</p>
-          <p className="controlsText">
+          <p>Help</p>
+          <p className="helpText">
             WASD to move.
-            <br />C to change camera.
+            <br />
+            Click to interact.
+            <br />
+            <button
+              className="helpText"
+              onClick={() => this.props.setOverlay(() => <HelpOverlay />)}
+            >
+              More help...
+            </button>
           </p>
           <p>Players</p>
         </div>
