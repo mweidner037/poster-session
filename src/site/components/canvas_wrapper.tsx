@@ -55,15 +55,14 @@ export class CanvasWrapper extends React.Component<Props> {
     canvasDiv.appendChild(Globals().renderCanvas);
 
     // Add input listeners.
-    const removePlayerMovement = this.handlePlayerMovement();
-    const removeCameraPerspectives = this.handleCameraPerspective();
-    const removeMouseInput = this.handleMouseInput();
+    const toRemove: (() => void)[] = [];
+    toRemove.push(this.handlePlayerMovement());
+    toRemove.push(this.handleCameraPerspective());
+    toRemove.push(this.handleMouseInput());
 
     this.removeListeners = () => {
       canvasDiv.removeChild(Globals().renderCanvas);
-      removePlayerMovement();
-      removeCameraPerspectives();
-      removeMouseInput();
+      toRemove.forEach((value) => value());
     };
   }
 

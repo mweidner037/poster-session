@@ -53,7 +53,7 @@ import { connectToServer } from "./net";
     renderCanvas,
     highlightLayer,
     meshStore: new MeshStore(scene),
-    keyTracker: new KeyTracker(scene),
+    keyTracker: new KeyTracker(scene, renderCanvas),
     audioContext,
   });
 

@@ -5,6 +5,7 @@ import { Room } from "../../state";
 import { FaMousePointer, FaEdit, FaTimes } from "react-icons/fa";
 import { GiBearFace } from "react-icons/gi";
 import { BsEasel } from "react-icons/bs";
+import { Globals } from "../../util";
 
 /**
  * Maps from tool name to [icon, description for help].
@@ -44,7 +45,11 @@ export class Toolbox extends React.Component<Props> {
           key={key}
           style={{ borderStyle: selected ? "inset" : "outset" }}
           title={key + ": " + value[1]}
-          onMouseDown={() => this.props.setTool(key as keyof typeof TOOLS)}
+          onMouseDown={(e) => {
+            e.preventDefault(); // Prevent gaining focus.
+            this.props.setTool(key as keyof typeof TOOLS);
+            Globals().renderCanvas.focus();
+          }}
         >
           {React.createElement(value[0])}
         </span>

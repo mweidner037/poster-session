@@ -1,21 +1,24 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 
 export class KeyTracker {
-  private readonly keysDown: { [char: string]: boolean | undefined } = {};
+  private readonly keysDown = new Set<string>();
 
-  constructor(scene: BABYLON.Scene) {
-    // TODO: release keys if the user leaves the scene.
+  constructor(scene: BABYLON.Scene, renderCanvas: HTMLCanvasElement) {
     scene.onKeyboardObservable.add((e) => {
       if (e.event.type === "keydown") {
-        this.keysDown[e.event.key] = true;
+        this.keysDown.add(e.event.key);
       } else if (e.event.type === "keyup") {
-        this.keysDown[e.event.key] = false;
+        this.keysDown.delete(e.event.key);
       }
     });
+    // Release all keys when the scene loses focus.
+    renderCanvas.onblur = () => {
+      this.keysDown.clear();
+    };
   }
 
   get(char: string): boolean {
-    return this.keysDown[char] ?? false;
+    return this.keysDown.has(char);
   }
 
   getIgnoreCase(char: string): boolean {

@@ -1,11 +1,10 @@
-- ignore key presses during an overlay. Perhaps reset, to avoid missed key presses inside the overlay.
 - mouse pointer not updated if you move underneath it; perhaps actions would work instead (and probably be more efficient)? https://doc.babylonjs.com/divingDeeper/events/actions Or, could manually pick on each render/bigTick.
 - optimizations: https://doc.babylonjs.com/divingDeeper/scene/optimize_your_scene
 - reduce max audio range, maybe just near posters? So you can have posters reasonably close with conversations at each. Maybe step inside a circle to only hear those also inside the circle (tho could be nice to still hear other circles when in none)?
 - test client disconnection due to internet failure; may need to reduce server's WS timeouts to prevent a leftover stuck player.
 - Click on a player in the list to locate them?
 - File upload: max height enforcement; make explicit that existing image (or null) is kept if you don't reupload; option to remove existing image; display image immediately after uploading (or if it's already present), then set height based on that (with option to ignore scale), only pushing when you submit; PosterViewer: use heightRatio instead of original image aspect ratio; allow other file formats (especially pdf)?; inches instead of cm;
-- Focus on scene at startup and after granting/denying audio permissions.
+- Focus on scene at startup? (Didn't work last time I tried, maybe due to slow start.)
 - Prevent deleting first/last ground
 - Generic React superclass that wraps an EventEmitter, for ease of wrapping Collabs state?
 - Replace PeerJS server with own. For now, since not using Heroku anyway, just have it run on a different port.
@@ -14,7 +13,6 @@
 - Also: "Audio connecting..." indicator, for until PeerJS has connected. Failure indicator if it fails.
 - Try reconnecting to PeerJS server if it fails to connect at first or gets disconnected? By default, it appears to give up forever, sometimes without even printing a failed-to-connect error.
 - remember name, color, position, tool
-- focus on canvas after clicking toolbox
 - In theory, WebSocketServer should be doing own keepalive, but doesn't seem to be preventing Heroku close. See https://github.com/theturtle32/WebSocket-Node/blob/master/lib/WebSocketConnection.js
 For now, added manual ping every 30 sec; check this works.
 WebSocket: use browser built-in instead of ws package, in client? ws package seems just for node.
