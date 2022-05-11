@@ -1,5 +1,6 @@
 import React from "react";
 import { PICK_DISTANCE } from "../canvas_wrapper";
+import { TOOLS } from "../toolbox";
 
 export class HelpOverlay extends React.Component {
   render() {
@@ -41,20 +42,11 @@ export class HelpOverlay extends React.Component {
         <h2>Editing</h2>
         The toolbox on the left lets you edit the scene.
         <ul>
-          <li>M (Mouse): Interacts with the scene normally.</li>
-          <li>
-            E (Edit): Triggers the edit interaction on a clicked object, if
-            editable.
-          </li>
-          <li>X (Delete): Deletes the clicked object.</li>
-          <li>
-            B (Bear): Places a bear at the clicked point. Must place on the
-            ground.
-          </li>
-          <li>
-            A (Easel): Places an easel at the clicked point. Must place on the
-            ground.
-          </li>
+          {Object.entries(TOOLS).map(([name, [icon, description]]) => (
+            <li key={name}>
+              {React.createElement(icon)} ({name}): {description}
+            </li>
+          ))}
         </ul>
       </div>
     );
