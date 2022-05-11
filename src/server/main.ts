@@ -52,13 +52,19 @@ roomState.players.on("Add", (e) => {
 serverReplica.load(collabs.Optional.empty());
 
 // Construct initial state: a tiled ground.
-roomState.furniture.add(
-  "boring",
-  MyVector3.new(0, 0, 0),
-  MyVector3.new(0, 0, 0),
-  true,
-  "tiling.gltf"
-);
+const INIT_TILE_RANGE = 2;
+const INIT_TILE_SIZE = 16;
+for (let x = -INIT_TILE_RANGE; x <= INIT_TILE_RANGE; x++) {
+  for (let z = -INIT_TILE_RANGE; z <= INIT_TILE_RANGE; z++) {
+    roomState.furniture.add(
+      "boring",
+      MyVector3.new(x * INIT_TILE_SIZE, 0, z * INIT_TILE_SIZE),
+      MyVector3.new(0, 0, 0),
+      true,
+      "tiling.gltf"
+    );
+  }
+}
 
 serverReplica.on("Send", (e) => {
   broadcast(e.message);
