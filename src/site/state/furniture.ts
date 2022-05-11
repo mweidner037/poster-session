@@ -1,4 +1,5 @@
 import { FurnitureState } from "../../common/state";
+import { Overlay } from "../components";
 
 export abstract class Furniture<S extends FurnitureState = FurnitureState> {
   constructor(readonly state: S) {}
@@ -10,11 +11,11 @@ export abstract class Furniture<S extends FurnitureState = FurnitureState> {
 
   abstract canInteract(): boolean;
 
-  abstract interact(): void;
+  abstract interact(setOverlay: (overlay: Overlay) => void): void;
 
   abstract canEdit(): boolean;
 
-  abstract edit(): void;
+  abstract edit(setOverlay: (overlay: Overlay) => void): void;
 
   /**
    * Remove this furniture from the scene.

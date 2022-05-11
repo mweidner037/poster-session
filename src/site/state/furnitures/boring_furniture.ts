@@ -32,8 +32,6 @@ export class BoringFurniture extends Furniture<BoringFurnitureState> {
   }
 
   canEdit(): boolean {
-    // TODO: remove
-    console.log("canEdit", this.state.position);
     return false;
   }
 
@@ -42,8 +40,6 @@ export class BoringFurniture extends Furniture<BoringFurnitureState> {
   }
 
   canInteract(): boolean {
-    // TODO: remove
-    console.log("canInteract", this.state.position);
     return false;
   }
 

@@ -7,6 +7,8 @@ export class EaselState extends FurnitureState {
   readonly image: SerialCRegister<Uint8Array | null>;
   /** Width in Babylon units (meters). */
   readonly width: SerialCRegister<number>;
+  /** Height over width. */
+  readonly heightRatio: SerialCRegister<number>;
 
   constructor(
     initToken: collabs.InitToken,
@@ -21,6 +23,10 @@ export class EaselState extends FurnitureState {
     );
     this.width = super.addChild(
       "width",
+      collabs.Pre(SerialCRegister)(1, "remote")
+    );
+    this.heightRatio = super.addChild(
+      "heightRatio",
       collabs.Pre(SerialCRegister)(1, "remote")
     );
   }

@@ -1,6 +1,10 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
+import React from "react";
 import { EaselState } from "../../../common/state";
 import { MyVector3 } from "../../../common/util";
+import { Overlay } from "../../components";
+import { PosterEditor } from "../../components/overlays/poster_editor";
+import { PosterViewer } from "../../components/overlays/poster_viewer";
 import { setMeshSource } from "../../scene";
 import { Globals } from "../../util";
 import { Furniture } from "../furniture";
@@ -17,8 +21,10 @@ const POSTER_ANGLE = (13 * Math.PI) / 180;
 export class Easel extends Furniture<EaselState> {
   private readonly mesh: BABYLON.AbstractMesh;
   private readonly posterMesh: BABYLON.Mesh;
+  private readonly posterMaterial: BABYLON.StandardMaterial;
+  private imageURL: string | null = null;
 
-  constructor(state: EaselState, scene: BABYLON.Scene) {
+  constructor(state: EaselState, private readonly scene: BABYLON.Scene) {
     super(state);
 
     // Mesh.
@@ -43,19 +49,37 @@ export class Easel extends Furniture<EaselState> {
     // top.
     this.posterMesh.rotation.x = POSTER_ANGLE;
     setMeshSource(this.posterMesh, this);
+
+    // Use a MultiMaterial so we can apply the poster image to the front
+    // face only:
+    // https://doc.babylonjs.com/divingDeeper/materials/using/multiMaterials
+    this.posterMaterial = new BABYLON.StandardMaterial("mat0", scene);
+    const otherSidesMaterial = new BABYLON.StandardMaterial("mat1", scene);
+    otherSidesMaterial.diffuseColor = BABYLON.Color3.White();
+    const multiMat = new BABYLON.MultiMaterial("multi", scene);
+    multiMat.subMaterials.push(this.posterMaterial);
+    multiMat.subMaterials.push(otherSidesMaterial);
+    this.posterMesh.material = multiMat;
+    const verticesCount = this.posterMesh.getTotalVertices();
+    new BABYLON.SubMesh(1, 0, verticesCount, 0, 6, this.posterMesh);
+    new BABYLON.SubMesh(0, 0, verticesCount, 6, 6, this.posterMesh);
+    new BABYLON.SubMesh(1, 0, verticesCount, 12, 24, this.posterMesh);
+
     this.updatePosterTransform();
     this.updatePosterImage();
     this.state.width.on("Set", () => this.updatePosterTransform());
+    this.state.heightRatio.on("Set", () => this.updatePosterTransform());
     this.state.image.on("Set", () => this.updatePosterImage());
 
+    // Setup easelMesh.
     Globals()
       .meshStore.getMesh("furnitures/easel.gltf", 1)
       .then((meshTemplate) => {
         if (this.mesh.isDisposed()) return;
-        // Setup easelMesh.
-        const easelMesh = <BABYLON.Mesh>(
-          meshTemplate.clone("player", this.mesh)!
-        );
+        const easelMesh = meshTemplate.clone(
+          "player",
+          this.mesh
+        )! as BABYLON.Mesh;
         easelMesh.setEnabled(true);
         setMeshSource(easelMesh, this);
       });
@@ -67,7 +91,7 @@ export class Easel extends Furniture<EaselState> {
    */
   private updatePosterTransform() {
     this.posterMesh.scaling.x = this.state.width.value;
-    const height = this.getPosterHeight();
+    const height = this.state.heightRatio.value * this.state.width.value;
     this.posterMesh.scaling.y = height;
     // The poster is a rectangle with the origin at its center, in local
     // coordinates. We need to transform it so that its bottom back center is
@@ -84,33 +108,56 @@ export class Easel extends Furniture<EaselState> {
    * Update posterMesh's texture so it displays the state's image.
    */
   private updatePosterImage() {
-    // TODO
-  }
-
-  private getPosterHeight(): number {
-    if (this.state.image === null) return this.state.width.value;
-    // TODO
-    return 1;
+    if (this.state.image.value !== null) {
+      this.imageURL = URL.createObjectURL(
+        new Blob([this.state.image.value], { type: "image/png" })
+      );
+      this.posterMaterial.diffuseTexture = new BABYLON.Texture(
+        this.imageURL,
+        this.scene
+      );
+    } else {
+      this.imageURL = null;
+      if (this.posterMaterial.diffuseTexture !== null) {
+        this.posterMaterial.diffuseTexture.dispose();
+        this.posterMaterial.diffuseTexture = null;
+      }
+    }
   }
 
   canEdit(): boolean {
-    // TODO: remove
-    console.log("canEdit", this.state.position);
-    return false;
+    return true;
   }
 
-  edit(): void {
-    throw new Error("Cannot edit");
+  edit(setOverlay: (overlay: Overlay) => void): void {
+    setOverlay(() => (
+      <PosterEditor
+        easel={this}
+        startWidth={Math.round(100 * this.state.width.value)}
+        setOverlay={setOverlay}
+      />
+    ));
   }
 
   canInteract(): boolean {
-    // TODO: remove
-    console.log("canInteract", this.state.position);
-    return false;
+    return true;
   }
 
-  interact(): void {
-    throw new Error("Cannot interact");
+  interact(setOverlay: (overlay: Overlay) => void): void {
+    if (this.state.image.value === null) {
+      // First interaction sets the image.
+      this.edit(setOverlay);
+    } else {
+      // Note the overlay doesn't reference this, so it won't change if
+      // the image/size changes while someone is looking at it.
+      // That seems like the desired behavior.
+      setOverlay(() => (
+        <PosterViewer
+          imageURL={this.imageURL!}
+          heightRatio={this.state.heightRatio.value}
+        />
+      ));
+    }
   }
 
   readonly isGround = false;

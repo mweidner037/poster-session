@@ -6,6 +6,13 @@ import { Toolbox, TOOLS } from "./toolbox";
 import "./react_main.css";
 import { Player, Room } from "../state";
 
+/**
+ * Interact overlay, represented as a callback that returns the
+ * overlay (e.g., () => <PosterViewOverlay easel={easel} />),
+ * or null if there is no current overlay.
+ */
+export type Overlay = (() => JSX.Element) | null;
+
 interface Props {
   scene: BABYLON.Scene;
   camera: BABYLON.UniversalCamera;
@@ -16,16 +23,25 @@ interface Props {
 interface State {
   /** Toolbox tool. */
   tool: keyof typeof TOOLS;
+  overlay: Overlay;
 }
 
 export class ReactMain extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
 
-    this.state = { tool: "Mouse" };
+    this.state = { tool: "Mouse", overlay: null };
   }
 
+  private setOverlay = (overlay: Overlay) => {
+    this.setState({ overlay });
+  };
+
   render() {
+    const overlayDiv =
+      this.state.overlay === null ? null : (
+        <div className="overlayDiv">{this.state.overlay()}</div>
+      );
     // TODO: only show toolbar in editor mode.
     return (
       <div className="reactMainDiv">
@@ -44,7 +60,10 @@ export class ReactMain extends React.Component<Props, State> {
             room={this.props.room}
             ourPlayer={this.props.ourPlayer}
             tool={this.state.tool}
+            overlay={this.state.overlay}
+            setOverlay={this.setOverlay}
           />
+          {overlayDiv}
         </div>
         <div className="rightPanelRoot">
           <RightPanel

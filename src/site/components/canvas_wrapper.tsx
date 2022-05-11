@@ -6,6 +6,7 @@ import { Furniture, Player, Room } from "../state";
 import { CAMERA_PERSPECTIVES } from "../scene/camera_perspectives";
 import { TOOLS } from "./toolbox";
 import { getMeshSource } from "../scene";
+import { Overlay } from "./react_main";
 
 const PICK_DISTANCE = 5;
 
@@ -19,6 +20,8 @@ interface Props {
   /** Never changes. */
   ourPlayer: Player;
   tool: keyof typeof TOOLS;
+  overlay: Overlay;
+  setOverlay: (overlay: Overlay) => void;
 }
 
 /**
@@ -154,6 +157,12 @@ export class CanvasWrapper extends React.Component<Props> {
       // not just chosen tool like currently.
       // Then need to update when player moves or tool changes.
       if (e.type == BABYLON.PointerEventTypes.POINTERDOWN) {
+        // Clicking outside an overlay cancels it.
+        if (this.props.overlay !== null) {
+          this.props.setOverlay(null);
+          return;
+        }
+
         if (e.pickInfo === null || e.pickInfo.pickedMesh === null) return;
         if (e.pickInfo.distance > PICK_DISTANCE) return;
         const pickedObject = getMeshSource(e.pickInfo.pickedMesh);
@@ -165,10 +174,12 @@ export class CanvasWrapper extends React.Component<Props> {
             case "Mouse":
               // TODO: shift+mouse = edit mode.
               // TODO: also use this case when toolbox is hidden.
-              if (pickedObject.canInteract()) pickedObject.interact();
+              if (pickedObject.canInteract())
+                pickedObject.interact(this.props.setOverlay);
               break;
             case "Edit":
-              if (pickedObject.canEdit()) pickedObject.edit();
+              if (pickedObject.canEdit())
+                pickedObject.edit(this.props.setOverlay);
               break;
             case "Delete":
               this.props.room.furnitures.delete(pickedObject);
