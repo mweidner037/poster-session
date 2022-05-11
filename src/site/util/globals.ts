@@ -1,6 +1,7 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import { KeyTracker } from "../scene/key_tracker";
 import { MeshStore } from "../scene/mesh_store";
+import { LocalStorage } from "./local_storage";
 
 export interface Globals {
   renderCanvas: HTMLCanvasElement;
@@ -8,6 +9,7 @@ export interface Globals {
   meshStore: MeshStore;
   keyTracker: KeyTracker;
   audioContext: AudioContext;
+  localStorage: LocalStorage;
 }
 
 let globalsVar: Globals | null = null;

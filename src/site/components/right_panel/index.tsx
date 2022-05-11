@@ -11,6 +11,8 @@ interface Props {
   players: PlayerSet;
   ourPlayer: Player;
   setOverlay: (overlay: Overlay) => void;
+  returnToStart: () => void;
+  resetAndRefresh: () => void;
 }
 
 export class RightPanel extends React.Component<Props> {
@@ -28,7 +30,14 @@ export class RightPanel extends React.Component<Props> {
             <br />
             <button
               className="helpText"
-              onClick={() => this.props.setOverlay(() => <HelpOverlay />)}
+              onClick={() =>
+                this.props.setOverlay(() => (
+                  <HelpOverlay
+                    returnToStart={this.props.returnToStart}
+                    resetAndRefresh={this.props.resetAndRefresh}
+                  />
+                ))
+              }
             >
               More help...
             </button>

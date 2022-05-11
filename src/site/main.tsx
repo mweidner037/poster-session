@@ -13,7 +13,7 @@ import {
   PlayerAudio,
 } from "./calling";
 import { createScene, MeshStore, KeyTracker, startLogicLoop } from "./scene";
-import { Globals, setGlobals } from "./util";
+import { Globals, LocalStorage, setGlobals } from "./util";
 import { Room } from "./state";
 import { ReactMain } from "./components";
 import { connectToServer } from "./net";
@@ -55,6 +55,7 @@ import { connectToServer } from "./net";
     meshStore: new MeshStore(scene),
     keyTracker: new KeyTracker(scene, renderCanvas),
     audioContext,
+    localStorage: new LocalStorage(),
   });
 
   // Start loading important meshes. Also clean some of them.
@@ -74,23 +75,50 @@ import { connectToServer } from "./net";
   const room = new Room(roomState, scene, highlightLayer);
 
   // Create our player's entity and attach the camera.
-  const randomHue = 2 * Math.floor(Math.random() * 181);
+  // Try to get initial values from localStorage.
   const ourPlayer = room.players.add(
     peerID,
-    MyVector3.new(0, 0.5, 0),
-    MyVector3.new(0, 0, 0),
-    "Bear " + Math.floor(Math.random() * 10000),
-    randomHue
+    Globals().localStorage.getPosition() || MyVector3.new(0, 0.5, 0),
+    Globals().localStorage.getRotation() || MyVector3.new(0, 0, 0),
+    Globals().localStorage.getName() ||
+      "Bear " + Math.floor(Math.random() * 10000),
+    Globals().localStorage.getHue() || 2 * Math.floor(Math.random() * 181)
   );
   camera.parent = ourPlayer.mesh;
+  // Sync future values to localStorage.
+  ourPlayer.state.position.on("Set", () => {
+    Globals().localStorage.setPosition(ourPlayer.state.position.value);
+  });
+  ourPlayer.state.rotation.on("Set", () => {
+    Globals().localStorage.setRotation(ourPlayer.state.rotation.value);
+  });
+  ourPlayer.state.displayName.on("Set", () => {
+    Globals().localStorage.setName(ourPlayer.state.displayName.value);
+  });
+  ourPlayer.state.hue.on("Set", () => {
+    Globals().localStorage.setHue(ourPlayer.state.hue.value);
+  });
 
   // Render React components.
+  function returnToStart() {
+    // The mesh is the source of the truth, so we have to set things there.
+    MyVector3.syncTo(MyVector3.new(0, 0.5, 0), ourPlayer.mesh.position);
+    MyVector3.syncTo(MyVector3.new(0, 0, 0), ourPlayer.mesh.rotation);
+  }
+
+  function resetAndRefresh() {
+    Globals().localStorage.clear();
+    location.reload();
+  }
+
   ReactDOM.render(
     <ReactMain
       scene={scene}
       camera={camera}
       room={room}
       ourPlayer={ourPlayer}
+      returnToStart={returnToStart}
+      resetAndRefresh={resetAndRefresh}
     />,
     document.getElementById("reactRoot")
   );

@@ -5,6 +5,7 @@ import { RightPanel } from "./right_panel";
 import { Toolbox, TOOLS } from "./toolbox";
 import "./react_main.css";
 import { Player, Room } from "../state";
+import { Globals } from "../util";
 
 /**
  * Interact overlay, represented as a callback that returns the
@@ -18,6 +19,8 @@ interface Props {
   camera: BABYLON.UniversalCamera;
   room: Room;
   ourPlayer: Player;
+  returnToStart: () => void;
+  resetAndRefresh: () => void;
 }
 
 interface State {
@@ -30,7 +33,10 @@ export class ReactMain extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
 
-    this.state = { tool: "Mouse", overlay: null };
+    this.state = {
+      tool: Globals().localStorage.getTool() ?? "Mouse",
+      overlay: null,
+    };
   }
 
   private setOverlay = (overlay: Overlay) => {
@@ -50,7 +56,10 @@ export class ReactMain extends React.Component<Props, State> {
             scene={this.props.scene}
             room={this.props.room}
             tool={this.state.tool}
-            setTool={(tool) => this.setState({ tool })}
+            setTool={(tool) => {
+              this.setState({ tool });
+              Globals().localStorage.setTool(tool);
+            }}
           />
         </div>
         <div className="canvasWrapper">
@@ -70,6 +79,8 @@ export class ReactMain extends React.Component<Props, State> {
             players={this.props.room.players}
             ourPlayer={this.props.ourPlayer}
             setOverlay={this.setOverlay}
+            returnToStart={this.props.returnToStart}
+            resetAndRefresh={this.props.resetAndRefresh}
           />
         </div>
       </div>

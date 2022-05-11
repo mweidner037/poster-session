@@ -1,8 +1,14 @@
 import React from "react";
 import { PICK_DISTANCE } from "../canvas_wrapper";
 import { TOOLS } from "../toolbox";
+import { BsBoxArrowInLeft, BsExclamationTriangle } from "react-icons/bs";
 
-export class HelpOverlay extends React.Component {
+interface Props {
+  returnToStart: () => void;
+  resetAndRefresh: () => void;
+}
+
+export class HelpOverlay extends React.Component<Props> {
   render() {
     return (
       <div className="helpOverlayDiv">
@@ -48,6 +54,26 @@ export class HelpOverlay extends React.Component {
             </li>
           ))}
         </ul>
+        <h2>Troubleshooting</h2>
+        Many issues can be solved by refreshing the page.
+        <br />
+        You can also try using a different browser, e.g., Firefox.
+        <br />
+        <br />
+        <button onClick={this.props.returnToStart}>
+          <BsBoxArrowInLeft /> Return to start area
+        </button>{" "}
+        Returns you to where new players start. Click this if you are
+        lost/stuck/far away.
+        <br />
+        <br />
+        <button onClick={this.props.resetAndRefresh}>
+          <BsExclamationTriangle />
+          Reset and refresh
+        </button>{" "}
+        Resets saved data and refreshes the page. Click this if something seems
+        corrupted across refreshes. You will have to re-enter your name and
+        other info.
       </div>
     );
   }

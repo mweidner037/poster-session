@@ -13,7 +13,6 @@
 - non-bear view of own volume level? For 1st person mode.
 - Also: "Audio connecting..." indicator, for until PeerJS has connected. Failure indicator if it fails.
 - Try reconnecting to PeerJS server if it fails to connect at first or gets disconnected? By default, it appears to give up forever, sometimes without even printing a failed-to-connect error.
-- remember name, color, position, tool
 - In theory, WebSocketServer should be doing own keepalive, but doesn't seem to be preventing Heroku close. See https://github.com/theturtle32/WebSocket-Node/blob/master/lib/WebSocketConnection.js
 For now, added manual ping every 30 sec; check this works.
 WebSocket: use browser built-in instead of ws package, in client? ws package seems just for node.
