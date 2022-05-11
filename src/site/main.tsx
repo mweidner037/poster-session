@@ -76,10 +76,16 @@ import { connectToServer } from "./net";
 
   // Create our player's entity and attach the camera.
   // Try to get initial values from localStorage.
+  let initialPosition = Globals().localStorage.getPosition();
+  let initialRotation =
+    Globals().localStorage.getRotation() || MyVector3.new(0, 0, 0);
+  if (initialPosition === null) {
+    [initialPosition, initialRotation] = getStartPositionRotation();
+  }
   const ourPlayer = room.players.add(
     peerID,
-    Globals().localStorage.getPosition() || MyVector3.new(0, 0.5, 0),
-    Globals().localStorage.getRotation() || MyVector3.new(0, 0, 0),
+    initialPosition,
+    initialRotation,
     Globals().localStorage.getName() ||
       "Bear " + Math.floor(Math.random() * 10000),
     Globals().localStorage.getHue() || 2 * Math.floor(Math.random() * 181)
@@ -102,8 +108,9 @@ import { connectToServer } from "./net";
   // Render React components.
   function returnToStart() {
     // The mesh is the source of the truth, so we have to set things there.
-    MyVector3.syncTo(MyVector3.new(0, 0.5, 0), ourPlayer.mesh.position);
-    MyVector3.syncTo(MyVector3.new(0, 0, 0), ourPlayer.mesh.rotation);
+    const [position, rotation] = getStartPositionRotation();
+    MyVector3.syncTo(position, ourPlayer.mesh.position);
+    MyVector3.syncTo(rotation, ourPlayer.mesh.rotation);
   }
 
   function resetAndRefresh() {
@@ -134,3 +141,20 @@ import { connectToServer } from "./net";
   // Setup WebRTC.
   new PeerJSManager(peerServer, ourPlayer, room.players, ourAudioStream);
 })();
+
+const START_CIRCLE_RADIUS = 3;
+
+function getStartPositionRotation(): [
+  position: MyVector3,
+  rotation: MyVector3
+] {
+  // Randomly choose a position on a circle, facing inwards.
+  const angle = Math.random() * 2 * Math.PI;
+  const position = MyVector3.new(
+    START_CIRCLE_RADIUS * Math.cos(angle),
+    0.5,
+    START_CIRCLE_RADIUS * Math.sin(angle)
+  );
+  const rotation = MyVector3.new(0, -angle - Math.PI / 2, 0);
+  return [position, rotation];
+}
