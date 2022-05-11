@@ -97,22 +97,29 @@ export class CanvasWrapper extends React.Component<Props> {
       lastTime = newTime;
 
       // Move our player directly (w/o telling the server right away).
+      // TODO: ignore caps lock on these?
       if (Globals().keyTracker.getIgnoreCase("w")) {
         ourPlayer.mesh.movePOV(0, 0, -deltaSec * TRANSLATION_SPEED);
       } else if (Globals().keyTracker.getIgnoreCase("s")) {
         ourPlayer.mesh.movePOV(0, 0, deltaSec * TRANSLATION_SPEED);
       }
-
-      if (
-        Globals().keyTracker.getIgnoreCase("a") &&
-        !Globals().keyTracker.getIgnoreCase("d")
-      ) {
+      if (Globals().keyTracker.get("a") && !Globals().keyTracker.get("d")) {
         ourPlayer.mesh.rotatePOV(0, -deltaSec * ROTATION_SPEED, 0);
       } else if (
-        Globals().keyTracker.getIgnoreCase("d") &&
-        !Globals().keyTracker.getIgnoreCase("a")
+        Globals().keyTracker.get("d") &&
+        !Globals().keyTracker.get("a")
       ) {
         ourPlayer.mesh.rotatePOV(0, deltaSec * ROTATION_SPEED, 0);
+      } else if (
+        Globals().keyTracker.get("A") &&
+        !Globals().keyTracker.get("D")
+      ) {
+        ourPlayer.mesh.movePOV(deltaSec * TRANSLATION_SPEED, 0, 0);
+      } else if (
+        Globals().keyTracker.get("D") &&
+        !Globals().keyTracker.get("A")
+      ) {
+        ourPlayer.mesh.movePOV(-deltaSec * TRANSLATION_SPEED, 0, 0);
       }
 
       // Move other players.
