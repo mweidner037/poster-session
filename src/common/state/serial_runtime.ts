@@ -26,7 +26,7 @@ export class SerialRuntime extends collabs.AbstractRuntime<SerialRuntimeEventsRe
     replicaId?: string;
     isServer?: boolean;
   }) {
-    super(options?.replicaId ?? collabs.randomReplicaId());
+    super(options?.replicaId ?? collabs.randomReplicaID());
 
     const batchingStrategy =
       options?.batchingStrategy ?? new collabs.ImmediateBatchingStrategy();

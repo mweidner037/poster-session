@@ -1,20 +1,20 @@
 import * as collabs from "@collabs/collabs";
 import { MyVector3 } from "../util";
-import { SerialCRegister } from "./serial_register";
+import { SerialCVariable } from "./serial_variable";
 
 export class PlayerState extends collabs.CObject {
-  readonly position: SerialCRegister<MyVector3>;
-  readonly rotation: SerialCRegister<MyVector3>;
-  readonly displayName: SerialCRegister<string>;
+  readonly position: SerialCVariable<MyVector3>;
+  readonly rotation: SerialCVariable<MyVector3>;
+  readonly displayName: SerialCVariable<string>;
   /** A number in [0, 360]. */
-  readonly hue: SerialCRegister<number>;
+  readonly hue: SerialCVariable<number>;
   /**
    * Indicates whether this player has successfully connected to the PeerJS
    * calling server, hence can be called.
    *
    * For now, this only goes from false to true.
    */
-  readonly callReady: SerialCRegister<boolean>;
+  readonly callReady: SerialCVariable<boolean>;
 
   constructor(
     initToken: collabs.InitToken,
@@ -28,23 +28,23 @@ export class PlayerState extends collabs.CObject {
 
     this.position = this.addChild(
       "p",
-      collabs.Pre(SerialCRegister)(initialPosition, "local")
+      collabs.Pre(SerialCVariable)(initialPosition, "local")
     );
     this.rotation = this.addChild(
       "r",
-      collabs.Pre(SerialCRegister)(initialRotation, "local")
+      collabs.Pre(SerialCVariable)(initialRotation, "local")
     );
     this.displayName = this.addChild(
       "displayName",
-      collabs.Pre(SerialCRegister)(initialDisplayName, "local")
+      collabs.Pre(SerialCVariable)(initialDisplayName, "local")
     );
     this.hue = this.addChild(
       "hue",
-      collabs.Pre(SerialCRegister)(initialHue, "local")
+      collabs.Pre(SerialCVariable)(initialHue, "local")
     );
     this.callReady = this.addChild(
       "callReady",
-      collabs.Pre(SerialCRegister)(false, "local")
+      collabs.Pre(SerialCVariable)(false, "local")
     );
   }
 }

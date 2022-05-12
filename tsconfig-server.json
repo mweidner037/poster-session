@@ -5,7 +5,9 @@
     "module": "commonjs",
     "target": "ES6",
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    /* Emit sourcemap files. */
+    "sourceMap": true
   },
   "include": ["src/server", "src/common"]
 }

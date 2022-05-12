@@ -1,12 +1,7 @@
 import * as collabs from "@collabs/collabs";
+import { makeUID } from "@collabs/collabs";
 import * as BSON from "bson";
 import { SerialRuntime } from "./serial_runtime";
-
-// TODO: use Collabs version once it's exported.
-function makeUID(replicaID: string, replicaUniqueNumber: number): string {
-  // OPT: shorten (base128 instead of base36)
-  return `${replicaUniqueNumber.toString(36)} ${replicaID}`;
-}
 
 interface ChildSave {
   name: string;
@@ -34,9 +29,7 @@ export class SerialMutCSet<C extends collabs.Collab, Args extends any[]>
       ...args: Args
     ) => C,
     processEcho: "local" | "remote",
-    private readonly argsSerializer: collabs.Serializer<Args> = collabs.DefaultSerializer.getInstance(
-      initToken.runtime
-    )
+    private readonly argsSerializer: collabs.Serializer<Args> = collabs.DefaultSerializer.getInstance()
   ) {
     super(initToken);
 
@@ -59,7 +52,6 @@ export class SerialMutCSet<C extends collabs.Collab, Args extends any[]>
   /**
    * Returns undefined if processLocalEcho is false.
    */
-  // @ts-ignore need to change supertype to allow undefined.
   add(...args: Args): C | undefined {
     const message = {
       op: "add",
@@ -92,7 +84,7 @@ export class SerialMutCSet<C extends collabs.Collab, Args extends any[]>
   }
 
   private ourCreatedValue?: C = undefined;
-  protected receiveInternal(
+  public receive(
     messagePath: collabs.Message[],
     meta: collabs.MessageMeta
   ): void {
@@ -175,7 +167,7 @@ export class SerialMutCSet<C extends collabs.Collab, Args extends any[]>
 
   getDescendant(
     namePath: string[]
-  ): collabs.Collab<collabs.CollabEventsRecord> {
+  ): collabs.Collab<collabs.CollabEventsRecord> | undefined {
     if (namePath.length === 0) return this;
 
     const childName = namePath[namePath.length - 1];

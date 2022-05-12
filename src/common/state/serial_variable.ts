@@ -1,8 +1,8 @@
 import * as collabs from "@collabs/collabs";
 
-export class SerialCRegister<T>
-  extends collabs.CPrimitive<collabs.CRegisterEventsRecord<T>>
-  implements collabs.CRegister<T>
+export class SerialCVariable<T>
+  extends collabs.CPrimitive<collabs.CVariableEventsRecord<T>>
+  implements collabs.CVariable<T>
 {
   private _value: T;
   private readonly processLocalEcho: boolean;
@@ -12,9 +12,7 @@ export class SerialCRegister<T>
     initToken: collabs.InitToken,
     initialValue: T,
     processEcho: "local" | "remote" | "both",
-    private readonly serializer: collabs.Serializer<T> = collabs.DefaultSerializer.getInstance(
-      initToken.runtime
-    )
+    private readonly serializer: collabs.Serializer<T> = collabs.DefaultSerializer.getInstance()
   ) {
     super(initToken);
 
@@ -23,11 +21,10 @@ export class SerialCRegister<T>
     this.processRemoteEcho = processEcho === "remote" || processEcho === "both";
   }
 
-  set(value: T): T {
+  set(value: T): T | undefined {
     this.value = value;
-    // TODO: same issue as SerialMutCSet for return values
-    // (might not be updated right away).
-    return this.value;
+    if (this.processLocalEcho) return this.value;
+    else return undefined;
   }
 
   set value(value: T) {
