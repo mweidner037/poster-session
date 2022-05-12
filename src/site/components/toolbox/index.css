@@ -10,6 +10,11 @@
   background-color: lightgrey;
 }
 
+.toolboxTitle {
+  font-size: 20pt;
+  font-weight: bold;
+}
+
 .toolSelect {
   flex: 0 0 content;
 

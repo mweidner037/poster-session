@@ -1,3 +1,5 @@
+- Ctrl+keys to move twice as fast?
+- shift release movement bug
 - reduce webpack build size by using non-legacy Babylon imports.
 - mouse pointer not updated if you move underneath it; perhaps actions would work instead (and probably be more efficient)? https://doc.babylonjs.com/divingDeeper/events/actions Or, could manually pick on each render/bigTick.
 - optimizations: https://doc.babylonjs.com/divingDeeper/scene/optimize_your_scene

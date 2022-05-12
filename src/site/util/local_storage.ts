@@ -9,7 +9,7 @@ import { TOOLS } from "../components/toolbox";
  */
 export class LocalStorage {
   setName(name: string) {
-    window.localStorage.setItem("name", name);
+    this.safeSet("name", name);
   }
   getName(): string | null {
     return window.localStorage.getItem("name");
@@ -37,7 +37,7 @@ export class LocalStorage {
   }
 
   setTool(tool: keyof typeof TOOLS) {
-    window.localStorage.setItem("tool", tool);
+    this.safeSet("tool", tool);
   }
   getTool(): keyof typeof TOOLS | null {
     const tool = window.localStorage.getItem("tool");
@@ -50,10 +50,21 @@ export class LocalStorage {
     window.localStorage.clear();
   }
 
+  private safeSet(key: string, value: string): void {
+    try {
+      window.localStorage.setItem(key, value);
+    } catch (err) {
+      // Don't interrupt the caller, just print the error nicely.
+      void new Promise(() => {
+        throw err;
+      });
+    }
+  }
+
   private setMyVector3(prefix: string, value: MyVector3) {
-    window.localStorage.setItem(`${prefix}.x`, value.x + "");
-    window.localStorage.setItem(`${prefix}.y`, value.y + "");
-    window.localStorage.setItem(`${prefix}.z`, value.z + "");
+    this.safeSet(`${prefix}.x`, value.x + "");
+    this.safeSet(`${prefix}.y`, value.y + "");
+    this.safeSet(`${prefix}.z`, value.z + "");
   }
   private getMyVector3(prefix: string): MyVector3 | null {
     const xStr = window.localStorage.getItem(`${prefix}.x`);
@@ -68,7 +79,7 @@ export class LocalStorage {
   }
 
   private setFloat(name: string, value: number) {
-    window.localStorage.setItem(name, value + "");
+    this.safeSet(name, value + "");
   }
   private getFloat(name: string): number | null {
     const str = window.localStorage.getItem(name);

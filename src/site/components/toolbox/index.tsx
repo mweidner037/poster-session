@@ -58,7 +58,7 @@ export class Toolbox extends React.Component<Props> {
 
     return (
       <div className="toolbox">
-        <h3>Editing Tools</h3>
+        <p className="toolboxTitle">Editing Tools</p>
         <div className="toolSelect">{buttons}</div>
       </div>
     );

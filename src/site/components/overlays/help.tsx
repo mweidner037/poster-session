@@ -31,6 +31,7 @@ export class HelpOverlay extends React.Component<Props> {
         Sometimes interaction will pop up an overlay like this one; click on the
         scene outside the overlay to close it.
         <br />
+        <br />
         <b>Interactable objects:</b>
         <ul>
           <li>
@@ -43,8 +44,8 @@ export class HelpOverlay extends React.Component<Props> {
         <br />
         You can also see a color-coded list of players.
         <h2>Camera</h2>
-        Press C to toggle your camera perspective. By default, it is
-        first-person.
+        Press C to toggle your camera perspective. It is first-person by
+        default.
         <h2>Editing</h2>
         The toolbox on the left lets you edit the scene.
         <ul>

@@ -91,7 +91,11 @@ import { connectToServer } from "./net";
     Globals().localStorage.getHue() || 2 * Math.floor(Math.random() * 181)
   );
   camera.parent = ourPlayer.mesh;
-  // Sync future values to localStorage.
+  // Sync initial and future values to localStorage.
+  Globals().localStorage.setPosition(ourPlayer.state.position.value);
+  Globals().localStorage.setRotation(ourPlayer.state.rotation.value);
+  Globals().localStorage.setName(ourPlayer.state.displayName.value);
+  Globals().localStorage.setHue(ourPlayer.state.hue.value);
   ourPlayer.state.position.on("Set", () => {
     Globals().localStorage.setPosition(ourPlayer.state.position.value);
   });
