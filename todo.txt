@@ -1,8 +1,10 @@
+- playersList: change bg color (hard to read bright colors)
+- Instead of loading easel right away, load it when the easel tool is selected. Likewise for other furniture.
 - Ctrl+keys to move twice as fast?
 - shift release movement bug
 - reduce webpack build size by using non-legacy Babylon imports.
 - mouse pointer not updated if you move underneath it; perhaps actions would work instead (and probably be more efficient)? https://doc.babylonjs.com/divingDeeper/events/actions Or, could manually pick on each render/bigTick.
-- optimizations: https://doc.babylonjs.com/divingDeeper/scene/optimize_your_scene
+- optimizations: https://doc.babylonjs.com/divingDeeper/scene/optimize_your_scene ; also glb instead of gltf
 - reduce max audio range, maybe just near posters? So you can have posters reasonably close with conversations at each. Maybe step inside a circle to only hear those also inside the circle (tho could be nice to still hear other circles when in none)?
 - test client disconnection due to internet failure; may need to reduce server's WS timeouts to prevent a leftover stuck player.
 - Click on a player in the list to locate them?

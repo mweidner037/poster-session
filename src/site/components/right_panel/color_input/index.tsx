@@ -8,17 +8,17 @@ interface Props {
 }
 
 export class ColorInput extends React.Component<Props> {
-  private canvasRef: React.RefObject<HTMLCanvasElement>;
+  private canvas: React.RefObject<HTMLCanvasElement>;
   private ctx: CanvasRenderingContext2D | null = null;
 
   constructor(props: Props) {
     super(props);
 
-    this.canvasRef = React.createRef();
+    this.canvas = React.createRef();
   }
 
   componentDidMount() {
-    this.ctx = this.canvasRef.current!.getContext("2d")!;
+    this.ctx = this.canvas.current!.getContext("2d")!;
     this.ctx.strokeStyle = "black";
 
     const colorInputImage = new Image();
@@ -31,13 +31,13 @@ export class ColorInput extends React.Component<Props> {
   }
 
   private redraw() {
-    if (this.canvasRef.current === null || this.ctx === null) return;
+    if (this.canvas.current === null || this.ctx === null) return;
 
     this.ctx.clearRect(
       0,
       30,
-      this.canvasRef.current.width,
-      this.canvasRef.current.height - 30
+      this.canvas.current.width,
+      this.canvas.current.height - 30
     );
     // Draw a triangle pointing to the current hue, filled with its color
     // but outlined in black.
@@ -67,7 +67,7 @@ export class ColorInput extends React.Component<Props> {
       <>
         <p>Color</p>
         <canvas
-          ref={this.canvasRef}
+          ref={this.canvas}
           width="201"
           height="50"
           onClick={this.onClickHandler}

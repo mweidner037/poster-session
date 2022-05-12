@@ -1,50 +1,55 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import "@babylonjs/loaders/glTF"; // Loads gltf file parser.
+import "@babylonjs/loaders/OBJ"; // Loads obj file parser.
+// import "@babylonjs/loaders/STL"; // Loads stl file parser.
 
 export class MeshStore {
-  private readonly loadedByPath = new Map<string, BABYLON.AbstractMesh[]>();
+  private readonly loadedByPath = new Map<string, BABYLON.AbstractMesh>();
   private readonly loadingByPath = new Map<
     string,
-    Promise<BABYLON.ISceneLoaderAsyncResult>
+    Promise<BABYLON.AbstractMesh>
   >();
 
   constructor(private readonly scene: BABYLON.Scene) {}
 
   /**
    * @param  filePath Within assets/
-   * @param  index    Index of the mesh in the file
    */
-  async getMesh(
-    filePath: string,
-    index: number
-  ): Promise<BABYLON.AbstractMesh> {
+  async getMesh(filePath: string): Promise<BABYLON.AbstractMesh> {
     let loaded = this.loadedByPath.get(filePath);
     if (loaded === undefined) {
       let loading = this.loadingByPath.get(filePath);
       if (loading === undefined) {
-        loading = BABYLON.SceneLoader.ImportMeshAsync(
-          undefined,
-          "/assets/" + filePath,
-          undefined,
-          this.scene
-        );
+        loading = this.loadMesh(filePath);
         this.loadingByPath.set(filePath, loading);
       }
-      const loadingResult = await loading;
+      loaded = await loading;
       this.loadingByPath.delete(filePath);
-      loaded = loadingResult.meshes;
-      for (const mesh of loaded) {
-        // Disable and remove extraneous transforms..
-        mesh.setEnabled(false);
-        mesh.parent = null;
-        mesh.rotationQuaternion = null;
-        mesh.scaling = new BABYLON.Vector3(1, 1, 1);
-      }
-      this.loadedByPath.set(filePath, loaded);
     }
-    if (index > loaded.length - 1) {
-      throw new Error(`Index out of bounds: ${index}, ${loaded.length}`);
-    }
-    return loaded[index];
+    return loaded;
+  }
+
+  private async loadMesh(filePath: string): Promise<BABYLON.AbstractMesh> {
+    const loadingResult = await BABYLON.SceneLoader.ImportMeshAsync(
+      undefined,
+      "/assets/" + filePath,
+      undefined,
+      this.scene
+    );
+    // BabylonJS creates a root node at index 0 that has all included meshes
+    // as children; however, it behaves strangely (e.g., cannot re-enable
+    // clones if the original is disabled). Instead, we use index 1 and hope
+    // that it is the root mesh.
+    const loaded = loadingResult.meshes[1];
+    console.log(filePath);
+    console.log(loadingResult.meshes);
+    // Disable, eliminate root, and remove extraneous transforms.
+    loaded.setEnabled(false);
+    loaded.parent = null;
+    loaded.rotationQuaternion = null;
+    loaded.scaling = new BABYLON.Vector3(1, 1, 1);
+
+    this.loadedByPath.set(filePath, loaded);
+    return loaded;
   }
 }

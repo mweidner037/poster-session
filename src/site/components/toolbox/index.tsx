@@ -2,7 +2,7 @@ import React from "react";
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import "./index.css";
 import { Room } from "../../state";
-import { FaMousePointer, FaEdit, FaTimes } from "react-icons/fa";
+import { FaMousePointer, FaEdit, FaTimes, FaChalkboard } from "react-icons/fa";
 import { GiBearFace } from "react-icons/gi";
 import { BsEasel } from "react-icons/bs";
 import { Globals } from "../../util";
@@ -24,6 +24,10 @@ export const TOOLS = {
   Easel: [
     BsEasel,
     "Places an easel at the clicked point. Must place on the ground.",
+  ],
+  Whiteboard: [
+    FaChalkboard,
+    "Places a whiteboard at the clicked point. Must place on the ground.",
   ],
 } as const;
 

@@ -1,7 +1,8 @@
 import { BoringFurnitureState } from "./boring_furniture_state";
 import { EaselState } from "./easel_state";
+import { WhiteboardState } from "./whiteboard_state";
 
-export { BoringFurnitureState, EaselState };
+export { BoringFurnitureState, EaselState, WhiteboardState };
 
 // Update this map as you add new furniture types, in addition
 // to re-exporting them.
@@ -11,4 +12,5 @@ export { BoringFurnitureState, EaselState };
 export const FurnitureStateClasses = {
   boring: BoringFurnitureState,
   easel: EaselState,
+  whiteboard: WhiteboardState,
 } as const;

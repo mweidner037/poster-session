@@ -15,7 +15,7 @@ export class BoringFurniture extends Furniture<BoringFurnitureState> {
     super(state);
 
     Globals()
-      .meshStore.getMesh("furnitures/" + this.state.mesh, 1)
+      .meshStore.getMesh("furnitures/" + this.state.mesh)
       .then((meshTemplate) => {
         if (this.disposed) return;
         // Setup this.mesh.

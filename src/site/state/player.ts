@@ -9,7 +9,7 @@ import { PeerJSConnection } from "../calling";
 import { MyVector3 } from "../../common/util";
 import { Globals } from "../util";
 
-const DEFAULT_PLAYER_MESH: [string, number] = ["black_bear.gltf", 1];
+const DEFAULT_PLAYER_MESH = "black_bear.gltf";
 const NAME_WIDTH = 2;
 const NAME_HEIGHT = 0.3;
 const NAME_POSITION = new BABYLON.Vector3(0, 1.5, 0);
@@ -38,7 +38,7 @@ export class Player {
 
     // Setup displayMesh.
     Globals()
-      .meshStore.getMesh(...DEFAULT_PLAYER_MESH)
+      .meshStore.getMesh(DEFAULT_PLAYER_MESH)
       .then((meshTemplate) => {
         if (this.mesh.isDisposed()) return;
         this.displayMesh = <BABYLON.Mesh>(

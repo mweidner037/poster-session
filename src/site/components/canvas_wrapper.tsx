@@ -187,6 +187,7 @@ export class CanvasWrapper extends React.Component<Props> {
               break;
             case "Easel":
             case "Bear":
+            case "Whiteboard":
               // Place furniture on top of this furniture if it is a ground.
               if (!pickedObject.isGround) return;
               // Determine rotation angle: face towards ray.
@@ -208,6 +209,12 @@ export class CanvasWrapper extends React.Component<Props> {
                     rotation,
                     false,
                     "black_bear.gltf"
+                  );
+                  break;
+                case "Whiteboard":
+                  this.props.room.furnitures.addWhiteboard(
+                    e.pickInfo.pickedPoint!,
+                    rotation
                   );
                   break;
               }
@@ -238,7 +245,8 @@ export class CanvasWrapper extends React.Component<Props> {
                 break;
               case "Easel":
               case "Bear":
-                // Place furniture on top of this furniture if it is a ground.
+              case "Whiteboard":
+                // Can place furniture on top of this furniture if it is a ground.
                 if (pickedObject.isGround) cursor = "pointer";
                 break;
             }

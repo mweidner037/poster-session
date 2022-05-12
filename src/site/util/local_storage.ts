@@ -46,6 +46,13 @@ export class LocalStorage {
     return tool as keyof typeof TOOLS;
   }
 
+  setWhiteboardColor(color: string) {
+    this.safeSet("whiteboardColor", color);
+  }
+  getWhiteboardColor(): string | null {
+    return window.localStorage.getItem("whiteboardColor");
+  }
+
   clear() {
     window.localStorage.clear();
   }

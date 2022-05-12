@@ -73,11 +73,11 @@ export class Easel extends Furniture<EaselState> {
 
     // Setup easelMesh.
     Globals()
-      .meshStore.getMesh("furnitures/easel.gltf", 1)
+      .meshStore.getMesh("furnitures/easel.gltf")
       .then((meshTemplate) => {
         if (this.mesh.isDisposed()) return;
         const easelMesh = meshTemplate.clone(
-          "player",
+          "easel",
           this.mesh
         )! as BABYLON.Mesh;
         easelMesh.setEnabled(true);
