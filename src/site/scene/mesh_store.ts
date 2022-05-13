@@ -41,8 +41,6 @@ export class MeshStore {
     // clones if the original is disabled). Instead, we use index 1 and hope
     // that it is the root mesh.
     const loaded = loadingResult.meshes[1];
-    console.log(filePath);
-    console.log(loadingResult.meshes);
     // Disable, eliminate root, and remove extraneous transforms.
     loaded.setEnabled(false);
     loaded.parent = null;

@@ -81,7 +81,6 @@ export class Easel extends Furniture<EaselState> {
           this.mesh
         )! as BABYLON.Mesh;
         easelMesh.setEnabled(true);
-        setMeshSource(easelMesh, this);
       });
   }
 

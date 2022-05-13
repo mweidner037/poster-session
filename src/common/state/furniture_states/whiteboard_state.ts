@@ -4,9 +4,9 @@ import { FurnitureState } from "../furniture_state";
 import { SerialCMap } from "../serial_map";
 
 export class WhiteboardState extends FurnitureState {
-  // TODO: find out what these are for the furniture.
-  static readonly WIDTH = 500;
-  static readonly HEIGHT = 300;
+  static readonly WIDTH = 503;
+  static readonly HEIGHT = 308;
+  static readonly GRAN = 2;
 
   /**
    * Maps granular coordinate (x, y) to a variable holding the color name.

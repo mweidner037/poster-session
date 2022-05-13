@@ -10,7 +10,7 @@ export class SerialCVariable<T>
 
   constructor(
     initToken: collabs.InitToken,
-    initialValue: T,
+    private readonly initialValue: T,
     processEcho: "local" | "remote" | "both",
     private readonly serializer: collabs.Serializer<T> = collabs.DefaultSerializer.getInstance()
   ) {
@@ -63,6 +63,6 @@ export class SerialCVariable<T>
   }
 
   canGC(): boolean {
-    return false;
+    return this._value === this.initialValue;
   }
 }

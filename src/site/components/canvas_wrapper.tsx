@@ -68,6 +68,7 @@ export class CanvasWrapper extends React.Component<Props> {
 
   componentWillUnmount() {
     this.removeListeners!();
+    this.removeListeners = null;
   }
 
   /**

@@ -15,10 +15,11 @@ const COLORS: readonly string[] = [
   "brown",
 ] as const;
 
-const GRAN = 2;
+const BORDER_WIDTH = 2; // .whiteboardParent border width in pixels
 
 interface Props {
   whiteboardState: WhiteboardState;
+  canvas: HTMLCanvasElement;
 }
 
 interface State {
@@ -26,13 +27,12 @@ interface State {
 }
 
 export class WhiteboardViewer extends React.Component<Props, State> {
-  private canvas: React.RefObject<HTMLCanvasElement>;
-  private ctx: CanvasRenderingContext2D | null = null;
   private removeListeners: (() => void) | null = null;
+  private canvasParent: React.RefObject<HTMLDivElement>;
   // Mouse state. Not React state to avoid unnecessary re-renders.
-  private isDown = false;
-  private prevX = 0;
-  private prevY = 0;
+  // -1 if the last position was invalid.
+  private prevX = -1;
+  private prevY = -1;
 
   constructor(props: Props) {
     super(props);
@@ -48,43 +48,43 @@ export class WhiteboardViewer extends React.Component<Props, State> {
     }
     this.state = { selectedColor };
 
-    this.canvas = React.createRef();
+    this.canvasParent = React.createRef();
   }
 
   componentDidMount() {
-    this.ctx = this.canvas.current!.getContext("2d")!;
+    // Attach canvas and its listeners.
+    this.canvasParent.current!.appendChild(this.props.canvas);
 
-    // Draw the initial board state on the canvas.
-    for (const [[x, y], color] of this.props.whiteboardState.pixels) {
-      this.ctx.fillStyle = color;
-      this.ctx.fillRect(x, y, GRAN, GRAN);
-    }
-
-    // Subscribe to future updates.
-    const toRemove: (() => void)[] = [];
-    toRemove.push(
-      this.props.whiteboardState.pixels.on("Set", (event) => {
-        if (this.ctx === null) return;
-        this.ctx.fillStyle = this.props.whiteboardState.pixels.get(event.key)!;
-        this.ctx.fillRect(event.key[0], event.key[1], GRAN, GRAN);
-      })
-    );
-    toRemove.push(
-      this.props.whiteboardState.pixels.on("Delete", (event) => {
-        if (this.ctx === null) return;
-        this.ctx.clearRect(event.key[0], event.key[1], GRAN, GRAN);
-      })
-    );
-    this.removeListeners = () => {
-      toRemove.forEach((value) => value());
+    this.props.canvas.onmousedown = this.onMouseEvent;
+    this.props.canvas.onmouseup = this.onMouseEvent;
+    this.props.canvas.onmousemove = this.onMouseEvent;
+    this.props.canvas.onmouseleave = this.onMouseEvent;
+    this.props.canvas.onmouseenter = (e) => {
+      // Never draw on mouseenter.
+      this.prevX = -1;
+      this.onMouseEvent(e);
     };
 
     // Reset mouse state.
-    this.isDown = false;
+    this.prevX = -1;
+
+    this.removeListeners = () => {
+      this.canvasParent.current!.removeChild(this.props.canvas);
+      this.props.canvas.onmousedown = null;
+      this.props.canvas.onmouseup = null;
+      this.props.canvas.onmousemove = null;
+      this.props.canvas.onmouseleave = null;
+      this.props.canvas.onmouseenter = null;
+    };
   }
+
+  // TODO: technically should also replace the canvas on props update?
+  // Although I don't expect to go immediately from one whiteboard view to
+  // another.
 
   componentWillUnmount() {
     this.removeListeners!();
+    this.removeListeners = null;
   }
 
   private setSelectedColor(selectedColor: number) {
@@ -92,9 +92,49 @@ export class WhiteboardViewer extends React.Component<Props, State> {
     Globals().localStorage.setWhiteboardColor(COLORS[selectedColor]);
   }
 
-  private roundGran(n: number): number {
-    return Math.round(n / GRAN) * GRAN;
-  }
+  private onMouseEvent = (e: MouseEvent) => {
+    const isDown = (e.buttons & 1) !== 0;
+    if (isDown) {
+      const rect = this.props.canvas.getBoundingClientRect();
+      const canvasX = e.clientX - rect.left;
+      const canvasY = e.clientY - rect.top;
+      if (this.prevX !== -1) {
+        // Stroke was valid, draw.
+        this.interpolate(this.prevX, this.prevY, canvasX, canvasY).forEach(
+          (pt) => {
+            // Brush size 3.
+            for (
+              let dx = -WhiteboardState.GRAN;
+              dx <= WhiteboardState.GRAN;
+              dx += WhiteboardState.GRAN
+            ) {
+              for (
+                let dy = -WhiteboardState.GRAN;
+                dy <= WhiteboardState.GRAN;
+                dy += WhiteboardState.GRAN
+              ) {
+                if (pt[0] + dx >= 0 && pt[0] + dx < this.props.canvas.width) {
+                  if (
+                    pt[1] + dy >= 0 &&
+                    pt[1] + dy < this.props.canvas.height
+                  ) {
+                    this.props.whiteboardState.pixels.set(
+                      [pt[0] + dx, pt[1] + dy],
+                      COLORS[this.state.selectedColor]
+                    );
+                  }
+                }
+              }
+            }
+          }
+        );
+      }
+      this.prevX = canvasX;
+      this.prevY = canvasY;
+    } else {
+      this.prevX = -1;
+    }
+  };
 
   private interpolate(
     sX: number,
@@ -109,7 +149,7 @@ export class WhiteboardViewer extends React.Component<Props, State> {
       for (
         let i = this.roundGran(Math.min(sY, eY));
         i <= this.roundGran(Math.max(sY, eY));
-        i += GRAN
+        i += WhiteboardState.GRAN
       ) {
         pts.push([this.roundGran(sX), i]);
       }
@@ -125,7 +165,7 @@ export class WhiteboardViewer extends React.Component<Props, State> {
       for (
         let i = this.roundGran(Math.min(sX, eX));
         i <= this.roundGran(Math.max(sX, eX));
-        i += GRAN
+        i += WhiteboardState.GRAN
       ) {
         pts.push([i, this.roundGran(slope * i + intercept)]);
       }
@@ -133,7 +173,7 @@ export class WhiteboardViewer extends React.Component<Props, State> {
       for (
         let i = this.roundGran(Math.min(sY, eY));
         i <= this.roundGran(Math.max(sY, eY));
-        i += GRAN
+        i += WhiteboardState.GRAN
       ) {
         pts.push([this.roundGran((i - intercept) / slope), i]);
       }
@@ -142,58 +182,41 @@ export class WhiteboardViewer extends React.Component<Props, State> {
     return pts;
   }
 
+  private roundGran(n: number): number {
+    return Math.round(n / WhiteboardState.GRAN) * WhiteboardState.GRAN;
+  }
+
   render() {
     // TODO: show which color is selected, like in toolbox.
     return (
       <>
         <p>
           {COLORS.map((color, index) => (
-            <button
+            <span
+              className="colorSelectButton"
               key={index}
-              className="colorButton"
-              style={{ backgroundColor: color }}
+              style={{
+                backgroundColor: color,
+                borderStyle:
+                  index === this.state.selectedColor ? "inset" : "outset",
+              }}
               onMouseDown={() => this.setSelectedColor(index)}
-            ></button>
+            />
           ))}
         </p>
 
-        <canvas
-          ref={this.canvas}
-          className="whiteboard"
-          width={GRAN * WhiteboardState.WIDTH}
-          height={GRAN * WhiteboardState.HEIGHT}
-          onMouseDown={(e) => {
-            if ((e.buttons & 1) === 0) return;
-            this.isDown = true;
-            const rect = e.currentTarget.getBoundingClientRect();
-            this.prevX = e.clientX - rect.left;
-            this.prevY = e.clientY - rect.top;
+        <div
+          ref={this.canvasParent}
+          className="whiteboardParent"
+          style={{
+            width: `${
+              WhiteboardState.GRAN * WhiteboardState.WIDTH + 2 * BORDER_WIDTH
+            }px`,
+            height: `${
+              WhiteboardState.GRAN * WhiteboardState.HEIGHT + 2 * BORDER_WIDTH
+            }px`,
           }}
-          onMouseMove={(e) => {
-            if ((e.buttons & 1) === 0) this.isDown = false;
-            if (this.isDown !== false) {
-              const rect = e.currentTarget.getBoundingClientRect();
-              const canvasX = e.clientX - rect.left;
-              const canvasY = e.clientY - rect.top;
-              this.interpolate(
-                this.prevX,
-                this.prevY,
-                canvasX,
-                canvasY
-              ).forEach((pt) => {
-                this.props.whiteboardState.pixels.set(
-                  pt,
-                  COLORS[this.state.selectedColor]
-                );
-              });
-              this.prevX = canvasX;
-              this.prevY = canvasY;
-            }
-          }}
-          onMouseLeave={() => {
-            this.isDown = false;
-          }}
-        ></canvas>
+        ></div>
 
         <p>
           <button

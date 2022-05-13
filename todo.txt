@@ -1,3 +1,4 @@
+- no mouse changes if overlay is set
 - playersList: change bg color (hard to read bright colors)
 - Instead of loading easel right away, load it when the easel tool is selected. Likewise for other furniture.
 - Ctrl+keys to move twice as fast?
