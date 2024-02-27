@@ -1,10 +1,10 @@
-# Demo Server
+# Poster Session
 
-Server for running the demos.
+Experiment using an older version of [Collabs](https://collabs.readthedocs.io/en/latest/) for non-CRDT collaboration.
 
-It serves the demos folder under /demos, and also provides pages including a generic Collabs container host (from `/src/site/`). You can host any container by navigating to `/host.html?network=ws&container=<url>`.
+It is a web app with a multiplayer 3D world where you can move around, talk (with WebRTC proximity audio), add objects, and draw on whiteboards. BabylonJS, React, PeerJS, Heroku.
 
-Based off of the source for [@collabs/container-testing-server](https://github.com/composablesys/collabs/tree/master/container-testing-server).
+[Live version](https://poster-session.herokuapp.com/). May be flaky.
 
 ## Installation
 
@@ -30,8 +30,6 @@ Options:
 - -h, --help display help for command
 
 The port can be configured with the PORT environment variable. It defaults to 3000.
-
-The linked demos use that server to collaborate, but you can also follow the instructions to run in Matrix widgets. (To load Matrix widgets from a localhost server, you'll need to start it in HTTPS mode: `npm start -- --https`. Note that other clients will only be able to load the widget if they can connect to the server at the same address---if it's a localhost address, all clients need to be on the same machine).
 
 ### `npm run clean`
 

@@ -1,7 +1,7 @@
 import React from "react";
+import { BsBoxArrowInLeft, BsExclamationTriangle } from "react-icons/bs";
 import { PICK_DISTANCE } from "../canvas_wrapper";
 import { TOOLS } from "../toolbox";
-import { BsBoxArrowInLeft, BsExclamationTriangle } from "react-icons/bs";
 
 interface Props {
   returnToStart: () => void;
@@ -25,7 +25,8 @@ export class HelpOverlay extends React.Component<Props> {
         <h2>Interaction</h2>
         Click nearby objects in the scene to interact with them.
         <br />
-        If interacting is not working, you might be too far away (more than{" "}
+        If interacting is not working, select the Pointer icon under Editing
+        Tools. If it still doesn't work, you might be too far away (more than{" "}
         {PICK_DISTANCE} meters), or the object might not be interactable.
         <br />
         Sometimes interaction will pop up an overlay like this one; click on the

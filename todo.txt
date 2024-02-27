@@ -1,6 +1,12 @@
+- webrtc not working for me with others
+- heroku drop still?
+- print spam on npm run build
 - no mouse changes if overlay is set
 - playersList: change bg color (hard to read bright colors)
 - Instead of loading easel right away, load it when the easel tool is selected. Likewise for other furniture.
+- refocus after poster form submit
+- "Calling peer" / "Call from peer" logs: also print username
+- rename heroku to poster-session?
 - Ctrl+keys to move twice as fast?
 - shift release movement bug
 - reduce webpack build size by using non-legacy Babylon imports.
